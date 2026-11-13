@@ -126,3 +126,150 @@ class MyApplicationsTests(PropertyTestCase):
 
     def test_withdraw_requires_post(self):
         self.assertEqual(self.client.get(reverse('properties:withdraw', args=[self.mine.pk])).status_code, 405)
+
+
+class OwnerTestCase(PropertyTestCase):
+    """Logged in as the owner of all three properties; `other_owner` owns `theirs`."""
+
+    def setUp(self):
+        super().setUp()
+        self.other_owner = make_user('other', User.Role.OWNER)
+        self.theirs = Property.objects.create(owner=self.other_owner, name='Not Mine', property_type='house',
+                                              address='Talamban', city='Cebu City')
+        self.their_unit = Unit.objects.create(property=self.theirs, name='A', monthly_rent=5000)
+        self.client.force_login(self.owner)
+
+
+class OwnerAccessTests(OwnerTestCase):
+    def test_owner_pages_are_owner_only(self):
+        urls = [reverse('properties:owner_properties'), reverse('properties:owner_applications'),
+                reverse('properties:owner_property', args=[self.apt.pk])]
+        self.client.force_login(self.tenant)
+        for url in urls:
+            self.assertRedirects(self.client.get(url), reverse('accounts:dashboard_tenant'))
+
+    def test_lists_only_own_properties(self):
+        response = self.client.get(reverse('properties:owner_properties'))
+        names = {p.name for p in response.context['properties']}
+        self.assertEqual(names, {'Lahug Apartments', 'Mabolo Studios', 'Full House'})
+
+    def test_cannot_touch_another_owners_property_or_unit(self):
+        for url in [reverse('properties:owner_property', args=[self.theirs.pk]),
+                    reverse('properties:owner_property_edit', args=[self.theirs.pk]),
+                    reverse('properties:owner_unit_create', args=[self.theirs.pk]),
+                    reverse('properties:owner_unit_edit', args=[self.their_unit.pk])]:
+            self.assertEqual(self.client.get(url).status_code, 404)
+        self.client.post(reverse('properties:owner_property_delete', args=[self.theirs.pk]))
+        self.client.post(reverse('properties:owner_unit_delete', args=[self.their_unit.pk]))
+        self.assertTrue(Property.objects.filter(pk=self.theirs.pk).exists())
+        self.assertTrue(Unit.objects.filter(pk=self.their_unit.pk).exists())
+
+
+class OwnerPropertyTests(OwnerTestCase):
+    def test_create_property_sets_owner(self):
+        response = self.client.post(reverse('properties:owner_property_create'), {
+            'name': 'Banilad Homes', 'property_type': 'house', 'address': 'Gov. Cuenco', 'city': 'Cebu City'})
+        prop = Property.objects.get(name='Banilad Homes')
+        self.assertEqual(prop.owner, self.owner)
+        self.assertRedirects(response, reverse('properties:owner_property', args=[prop.pk]))
+
+    def test_create_property_requires_fields(self):
+        response = self.client.post(reverse('properties:owner_property_create'), {'name': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors)
+
+    def test_edit_and_delete_property(self):
+        self.client.post(reverse('properties:owner_property_edit', args=[self.studio.pk]), {
+            'name': 'Mabolo Lofts', 'property_type': 'studio', 'address': 'MJ Cuenco', 'city': 'Cebu City'})
+        self.studio.refresh_from_db()
+        self.assertEqual(self.studio.name, 'Mabolo Lofts')
+        self.client.post(reverse('properties:owner_property_delete', args=[self.studio.pk]))
+        self.assertFalse(Property.objects.filter(pk=self.studio.pk).exists())
+
+    def test_delete_requires_post(self):
+        response = self.client.get(reverse('properties:owner_property_delete', args=[self.studio.pk]))
+        self.assertEqual(response.status_code, 405)
+
+
+class OwnerUnitTests(OwnerTestCase):
+    def unit_data(self, **overrides):
+        return {'name': '201', 'bedrooms': 1, 'bathrooms': 1, 'floor_area': 30, 'monthly_rent': 9500,
+                'status': 'vacant', **overrides}
+
+    def test_add_unit(self):
+        self.client.post(reverse('properties:owner_unit_create', args=[self.apt.pk]), self.unit_data())
+        self.assertTrue(self.apt.units.filter(name='201', monthly_rent=9500).exists())
+
+    def test_duplicate_unit_name_rejected(self):
+        response = self.client.post(reverse('properties:owner_unit_create', args=[self.apt.pk]),
+                                    self.unit_data(name='101'))
+        self.assertIn('name', response.context['form'].errors)
+
+    def test_same_unit_name_allowed_in_other_property(self):
+        self.client.post(reverse('properties:owner_unit_create', args=[self.studio.pk]), self.unit_data(name='101'))
+        self.assertTrue(self.studio.units.filter(name='101').exists())
+
+    def test_rent_must_be_positive(self):
+        response = self.client.post(reverse('properties:owner_unit_create', args=[self.apt.pk]),
+                                    self.unit_data(monthly_rent=0))
+        self.assertIn('monthly_rent', response.context['form'].errors)
+
+    def test_edit_unit_keeping_its_name_and_delete(self):
+        self.client.post(reverse('properties:owner_unit_edit', args=[self.vacant.pk]),
+                         self.unit_data(name='101', status='occupied'))
+        self.vacant.refresh_from_db()
+        self.assertEqual(self.vacant.status, 'occupied')
+        self.client.post(reverse('properties:owner_unit_delete', args=[self.vacant.pk]))
+        self.assertFalse(Unit.objects.filter(pk=self.vacant.pk).exists())
+
+
+class OwnerApplicationTests(OwnerTestCase):
+    def setUp(self):
+        super().setUp()
+        self.tenant2 = make_user('tenant2', User.Role.TENANT)
+        self.app1 = Application.objects.create(tenant=self.tenant, unit=self.vacant)
+        self.app2 = Application.objects.create(tenant=self.tenant2, unit=self.vacant)
+        self.their_app = Application.objects.create(tenant=self.tenant, unit=self.their_unit)
+
+    def decide(self, app, decision):
+        return self.client.post(reverse('properties:owner_application_decide', args=[app.pk, decision]))
+
+    def test_lists_only_applications_for_own_units(self):
+        response = self.client.get(reverse('properties:owner_applications'))
+        self.assertEqual(set(response.context['applications']), {self.app1, self.app2})
+
+    def test_approve_occupies_unit_and_rejects_others(self):
+        self.decide(self.app1, 'approve')
+        for obj in (self.app1, self.app2, self.vacant):
+            obj.refresh_from_db()
+        self.assertEqual(self.app1.status, 'approved')
+        self.assertEqual(self.app2.status, 'rejected')
+        self.assertEqual(self.vacant.status, 'occupied')
+
+    def test_reject(self):
+        self.decide(self.app1, 'reject')
+        self.app1.refresh_from_db()
+        self.vacant.refresh_from_db()
+        self.assertEqual(self.app1.status, 'rejected')
+        self.assertEqual(self.vacant.status, 'vacant')
+
+    def test_cannot_approve_for_occupied_unit(self):
+        Unit.objects.filter(pk=self.vacant.pk).update(status='occupied')
+        self.decide(self.app1, 'approve')
+        self.app1.refresh_from_db()
+        self.assertEqual(self.app1.status, 'pending')
+
+    def test_only_pending_can_be_decided(self):
+        Application.objects.filter(pk=self.app1.pk).update(status='withdrawn')
+        self.decide(self.app1, 'approve')
+        self.app1.refresh_from_db()
+        self.assertEqual(self.app1.status, 'withdrawn')
+
+    def test_cannot_decide_another_owners_application(self):
+        self.assertEqual(self.decide(self.their_app, 'approve').status_code, 404)
+        self.their_app.refresh_from_db()
+        self.assertEqual(self.their_app.status, 'pending')
+
+    def test_unknown_decision_is_404(self):
+        response = self.client.post(f'/owner/applications/{self.app1.pk}/delete/')
+        self.assertEqual(response.status_code, 404)

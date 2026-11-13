@@ -1,0 +1,49 @@
+{% extends "app_base.html" %}
+{% block title %}{% if property %}Edit {{ property.name }}{% else %}Add property{% endif %}{% endblock %}
+{% block page_title %}My Properties{% endblock %}
+{% block content %}
+<div class="page-stack narrow-page">
+  <a href="{% if property %}{% url 'properties:owner_property' property.pk %}{% else %}{% url 'properties:owner_properties' %}{% endif %}" class="w-fit text-sm font-semibold text-brand no-underline hover:underline">← Back</a>
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">My properties</span>
+      <h1>{% if property %}Edit {{ property.name }}{% else %}Add a property{% endif %}</h1>
+      <p>{% if property %}Update the details tenants see when browsing.{% else %}Enter the building's details. You'll add its units on the next page.{% endif %}</p>
+    </div>
+  </div>
+  <section class="panel">
+    <form method="post" class="form-stack p-6" novalidate>
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+      <div class="form-grid two">
+        {% include "partials/field.html" with field=form.name %}
+        {% include "partials/field.html" with field=form.property_type %}
+      </div>
+      <div class="form-grid two">
+        {% include "partials/field.html" with field=form.address %}
+        {% include "partials/field.html" with field=form.city %}
+      </div>
+      {% include "partials/field.html" with field=form.description %}
+      {% include "partials/field.html" with field=form.amenities show_help=True %}
+      <div class="form-actions">
+        <a class="secondary-button" href="{% if property %}{% url 'properties:owner_property' property.pk %}{% else %}{% url 'properties:owner_properties' %}{% endif %}">Cancel</a>
+        <button class="primary-button" type="submit" data-loading="Saving…">{% if property %}Save changes{% else %}Add property{% endif %}</button>
+      </div>
+    </form>
+  </section>
+
+  {% if property %}
+  <section class="panel flex flex-wrap items-center justify-between gap-4 p-6">
+    <div>
+      <strong class="block text-sm text-red-700">Delete this property</strong>
+      <span class="text-xs text-slate-500">Removes the property, all its units, and every application for them. This can't be undone.</span>
+    </div>
+    <form method="post" action="{% url 'properties:owner_property_delete' property.pk %}" class="m-0"
+          onsubmit="return confirm('Delete {{ property.name|escapejs }} and all its units and applications? This cannot be undone.');">
+      {% csrf_token %}
+      <button class="danger-button cursor-pointer" type="submit" data-loading="Deleting…">Delete property</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

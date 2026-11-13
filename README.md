@@ -34,7 +34,16 @@ RentEase connects **property owners**, **tenants**, **staff**, and **administrat
 | **Apply** | The tenant picks a vacant unit, an optional move-in date, and a message for the owner. Occupied units, units from another property, past move-in dates, and a second pending application for the same unit are all rejected. A database constraint also enforces one pending application per tenant per unit. |
 | **My Applications** | Shows only the logged-in tenant's applications, with status tabs (Pending, Approved, Rejected, Withdrawn). Pending applications can be withdrawn. A tenant can't see or withdraw anyone else's. |
 
-Admins can manage properties, units, and applications in the Django admin. Owner-side property management and application review come in a later phase.
+## My Properties & Applications (Property Owner)
+
+| Feature | Details |
+|---|---|
+| **My Properties** | Lists only the owner's own properties, with unit, vacant, and pending-application counts. Owners can add, edit, and delete properties. |
+| **Units** | On each property's page, owners add, edit, and delete units (name, bedrooms, bathrooms, floor area, rent, Vacant/Occupied). Unit names must be unique within a property, and rent must be above zero. |
+| **Applications** | Lists applications for the owner's units, with status tabs (Pending first). Pending applications can be approved or rejected. Approving marks the unit Occupied and rejects the other pending applications for that unit. A unit that's already occupied can't be approved. |
+| **Ownership** | Every owner query is filtered by the logged-in owner, so another owner's properties, units, and applications return 404. |
+
+Admins can also manage properties, units, and applications in the Django admin.
 
 Public registration offers only **Tenant** and **Property Owner**. **Admin** and **Staff** accounts are created by an admin from **Users & Access** (the Django admin).
 
@@ -46,7 +55,7 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 | `/login/` | Anyone | Sign in with username or email |
 | `/dashboard/` | Logged in | Redirects to the dashboard for your role |
 | `/dashboard/admin/` | Admin | User statistics, recent registrations, admin shortcuts |
-| `/dashboard/owner/` | Property Owner | Owner workspace |
+| `/dashboard/owner/` | Property Owner | Property, unit, and pending-application stats; recent applications |
 | `/dashboard/tenant/` | Tenant | Tenant workspace |
 | `/dashboard/staff/` | Staff | Tenant and owner counts, staff workspace |
 | `/profile/` | Logged in | View your own profile |
@@ -54,6 +63,9 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 | `/browse/` | Tenant | Search properties with vacant units; filter by type and maximum rent |
 | `/browse/<id>/` | Tenant | Property details and units; apply for a vacant unit |
 | `/applications/` | Tenant | Your applications, filterable by status; withdraw pending ones |
+| `/owner/properties/` | Property Owner | Your properties; add, edit, delete |
+| `/owner/properties/<id>/` | Property Owner | Manage a property's units |
+| `/owner/applications/` | Property Owner | Approve or reject applications for your units |
 | `/django-admin/` | Admin | Manage users, roles, and active status |
 
 ---
@@ -179,7 +191,7 @@ npm run tw:watch     # leave running in a second terminal next to runserver
 .\venv\Scripts\python manage.py test
 ```
 
-The 30 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), and application ownership and withdrawal.
+The 49 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), application ownership and withdrawal, and owner property/unit management and application approval.
 
 ---
 

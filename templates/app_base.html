@@ -17,7 +17,7 @@
       {% for url_name, label, icon_name in menu %}
         {% if url_name %}
           {% url url_name as item_url %}
-          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span>{% if url_name == "properties:my_applications" and pending_count %}{% include "partials/ping_dot.html" with css="ml-auto" label=pending_count|stringformat:"d"|add:" pending" %}{% endif %}</a>
+          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span>{% if pending_count and url_name == "properties:my_applications" or pending_count and url_name == "properties:owner_applications" %}{% include "partials/ping_dot.html" with css="ml-auto" label=pending_count|stringformat:"d"|add:" pending" %}{% endif %}</a>
         {% else %}
           <span class="nav-disabled" title="Coming in a later phase">{% icon icon_name 19 %}<span>{{ label }}</span><em>Soon</em></span>
         {% endif %}

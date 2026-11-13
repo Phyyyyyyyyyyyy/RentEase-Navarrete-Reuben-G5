@@ -73,7 +73,17 @@ def dashboard_admin(request):
 
 @role_required(Role.OWNER)
 def dashboard_owner(request):
-    return render(request, 'accounts/dashboards/owner.html')
+    from properties.models import Application, Unit
+
+    units = Unit.objects.filter(property__owner=request.user)
+    pending = Application.objects.filter(unit__property__owner=request.user, status=Application.Status.PENDING)
+    return render(request, 'accounts/dashboards/owner.html', {
+        'property_count': request.user.properties.count(),
+        'unit_count': units.count(),
+        'vacant_units': units.filter(status=Unit.Status.VACANT).count(),
+        'app_pending': pending.count(),
+        'recent_pending': pending.select_related('tenant', 'unit__property')[:5],
+    })
 
 
 @role_required(Role.TENANT)

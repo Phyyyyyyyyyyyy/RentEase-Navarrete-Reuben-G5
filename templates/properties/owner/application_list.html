@@ -1,0 +1,76 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Applications{% endblock %}
+{% block page_title %}Applications{% endblock %}
+{% block content %}
+<div class="grid gap-6">
+  <div>
+    <span class="text-[11px] font-extrabold uppercase tracking-widest text-brand">Property owner</span>
+    <h1 class="m-0 mt-1 text-2xl font-bold tracking-tight text-slate-900">Tenant applications</h1>
+    <p class="m-0 mt-1 text-sm text-slate-500">Review applications for your units. Approving one marks the unit occupied and rejects the other pending applications for it.</p>
+  </div>
+
+  {# Status tabs #}
+  <nav class="flex flex-wrap gap-2">
+    {% for value, label, count in status_tabs %}
+      <a href="?status={{ value }}" class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold no-underline transition
+        {% if status == value %}border-brand bg-brand text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-blue-300{% endif %}">
+        {{ label }} <span class="{% if status == value %}text-blue-100{% else %}text-slate-400{% endif %}">{{ count }}</span>
+        {% if value == "pending" and count %}{% include "partials/ping_dot.html" with label="Applications awaiting your review" %}{% endif %}
+      </a>
+    {% endfor %}
+  </nav>
+
+  <section class="grid gap-3">
+    {% for app in applications %}
+    <article class="grid gap-4 rounded-2xl border border-line bg-white p-5 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
+      <div class="flex min-w-0 gap-4">
+        {% include "partials/avatar.html" with u=app.tenant css="avatar" %}
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <h3 class="m-0 text-base font-bold text-slate-900">{{ app.tenant.get_full_name|default:app.tenant.username }}</h3>
+            {% if app.status == "pending" %}<span class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">Pending</span>
+            {% elif app.status == "approved" %}<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Approved</span>
+            {% elif app.status == "rejected" %}<span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Rejected</span>
+            {% else %}<span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">Withdrawn</span>{% endif %}
+          </div>
+          <p class="m-0 mt-0.5 text-xs text-slate-500">
+            {{ app.tenant.email }}{% if app.tenant.phone %} · {{ app.tenant.phone }}{% endif %}
+          </p>
+          <p class="m-0 mt-2 text-sm text-slate-700">
+            <strong>{{ app.unit.property.name }}</strong> · {{ app.unit.name }} · {{ app.unit.monthly_rent|peso }}/mo
+          </p>
+          <p class="m-0 mt-0.5 text-xs text-slate-400">
+            Applied {{ app.created_at|date:"M j, Y" }}{% if app.preferred_move_in %} · Move-in {{ app.preferred_move_in|date:"M j, Y" }}{% endif %}
+            {% if app.status == "pending" and not app.unit.is_vacant %} · <span class="font-semibold text-red-600">Unit is now occupied</span>{% endif %}
+          </p>
+          {% if app.message %}<p class="m-0 mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">“{{ app.message }}”</p>{% endif %}
+        </div>
+      </div>
+      {% if app.status == "pending" %}
+      <div class="flex gap-2 lg:flex-col">
+        <form method="post" action="{% url 'properties:owner_application_decide' app.pk 'approve' %}" class="m-0"
+              onsubmit="return confirm('Approve {{ app.tenant.get_full_name|default:app.tenant.username|escapejs }} for {{ app.unit.name|escapejs }}? The unit will be marked occupied and other pending applications for it will be rejected.');">
+          {% csrf_token %}<input type="hidden" name="tab" value="{{ status }}">
+          <button type="submit" class="w-full cursor-pointer rounded-lg border-0 bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50" data-loading="Approving…" {% if not app.unit.is_vacant %}disabled title="Unit is occupied"{% endif %}>Approve</button>
+        </form>
+        <form method="post" action="{% url 'properties:owner_application_decide' app.pk 'reject' %}" class="m-0"
+              onsubmit="return confirm('Reject this application?');">
+          {% csrf_token %}<input type="hidden" name="tab" value="{{ status }}">
+          <button type="submit" class="w-full cursor-pointer rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-100" data-loading="Rejecting…">Reject</button>
+        </form>
+      </div>
+      {% endif %}
+    </article>
+    {% empty %}
+    <section class="grid place-items-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-slate-400">
+      {% icon "file" 36 %}
+      <h3 class="m-0 mt-3 text-base font-bold text-slate-700">
+        {% if status == "pending" %}No applications waiting for review{% elif status == "all" %}No applications yet{% else %}No {{ status }} applications{% endif %}
+      </h3>
+      <p class="m-0 mt-1 text-sm">Tenants' applications for your vacant units will appear here.</p>
+    </section>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

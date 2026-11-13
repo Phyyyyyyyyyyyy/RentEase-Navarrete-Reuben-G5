@@ -43,8 +43,8 @@ ROLE_MENUS = {
     ],
     'owner': [
         ('accounts:dashboard_owner', 'Dashboard', 'home'),
-        (None, 'My Properties', 'building'),
-        (None, 'Applications', 'file'),
+        ('properties:owner_properties', 'My Properties', 'building'),
+        ('properties:owner_applications', 'Applications', 'file'),
         ('accounts:profile', 'My Profile', 'user'),
     ],
     'tenant': [
@@ -78,11 +78,15 @@ def peso(value):
 
 @register.simple_tag
 def pending_applications(user):
-    """Number of the tenant's applications still awaiting review (0 for other roles)."""
-    if getattr(user, 'role', '') != 'tenant':
-        return 0
+    """Pending applications needing attention: a tenant's own applications awaiting
+    review, or for an owner, applications for their units awaiting a decision."""
     from properties.models import Application
-    return user.applications.filter(status=Application.Status.PENDING).count()
+    role = getattr(user, 'role', '')
+    if role == 'tenant':
+        return user.applications.filter(status=Application.Status.PENDING).count()
+    if role == 'owner':
+        return Application.objects.filter(unit__property__owner=user, status=Application.Status.PENDING).count()
+    return 0
 
 
 @register.simple_tag

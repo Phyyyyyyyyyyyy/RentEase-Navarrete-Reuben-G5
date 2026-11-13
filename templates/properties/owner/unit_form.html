@@ -1,0 +1,35 @@
+{% extends "app_base.html" %}
+{% block title %}{% if unit %}Edit {{ unit.name }}{% else %}Add unit{% endif %}{% endblock %}
+{% block page_title %}My Properties{% endblock %}
+{% block content %}
+<div class="page-stack narrow-page">
+  <a href="{% url 'properties:owner_property' property.pk %}" class="w-fit text-sm font-semibold text-brand no-underline hover:underline">← Back to {{ property.name }}</a>
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">{{ property.name }}</span>
+      <h1>{% if unit %}Edit {{ unit.name }}{% else %}Add a unit{% endif %}</h1>
+      <p>Set the unit's size, rent, and whether it's available for tenants to apply.</p>
+    </div>
+  </div>
+  <section class="panel">
+    <form method="post" class="form-stack p-6" novalidate>
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+      <div class="form-grid two">
+        {% include "partials/field.html" with field=form.name %}
+        {% include "partials/field.html" with field=form.monthly_rent %}
+      </div>
+      <div class="form-grid three">
+        {% include "partials/field.html" with field=form.bedrooms %}
+        {% include "partials/field.html" with field=form.bathrooms %}
+        {% include "partials/field.html" with field=form.floor_area %}
+      </div>
+      {% include "partials/field.html" with field=form.status %}
+      <div class="form-actions">
+        <a class="secondary-button" href="{% url 'properties:owner_property' property.pk %}">Cancel</a>
+        <button class="primary-button" type="submit" data-loading="Saving…">{% if unit %}Save changes{% else %}Add unit{% endif %}</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

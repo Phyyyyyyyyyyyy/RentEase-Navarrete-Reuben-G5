@@ -9,16 +9,41 @@
     <div class="hero-scope"><span>Signed in as</span><strong>Property Owner</strong><small>Manage your own listings</small></div>
   </section>
 
+  <section class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">{% icon "building" %}</div><div><span>Properties</span><strong>{{ property_count }}</strong><small>listed by you</small></div></div>
+    <div class="stat-card"><div class="stat-icon">{% icon "home" %}</div><div><span>Units</span><strong>{{ unit_count }}</strong><small>across all properties</small></div></div>
+    <div class="stat-card"><div class="stat-icon">{% icon "key" %}</div><div><span>Vacant units</span><strong>{{ vacant_units }}</strong><small>open for applications</small></div></div>
+    <div class="stat-card relative">{% if app_pending %}{% include "partials/ping_dot.html" with css="!absolute top-3 right-3" label="Applications awaiting your review" %}{% endif %}<div class="stat-icon">{% icon "clock" %}</div><div><span>To review</span><strong>{{ app_pending }}</strong><small>pending applications</small></div></div>
+  </section>
+
   <section class="dashboard-grid">
     <div class="panel">
       <div class="panel-heading"><div><span class="eyebrow">Quick actions</span><h2>Your workspace</h2></div></div>
       <div class="quick-actions">
-        <span class="quick-disabled">{% icon "building" %}<div><strong>Manage my properties</strong><span>Add properties and units. Coming in the next phase.</span></div><em>Soon</em></span>
-        <span class="quick-disabled">{% icon "file" %}<div><strong>Review applications</strong><span>Approve or reject tenant applications. Coming soon.</span></div><em>Soon</em></span>
+        <a href="{% url 'properties:owner_properties' %}">{% icon "building" %}<div><strong>Manage my properties</strong><span>Add properties and units, update rent and availability.</span></div>{% icon "chevron" %}</a>
+        <a href="{% url 'properties:owner_applications' %}">{% icon "file" %}<div><strong>Review applications</strong><span>{% if app_pending %}{{ app_pending }} application{{ app_pending|pluralize }} waiting for your decision.{% else %}Approve or reject tenant applications.{% endif %}</span></div>{% icon "chevron" %}</a>
         <a href="{% url 'accounts:profile' %}">{% icon "user" %}<div><strong>Update profile</strong><span>Keep your contact information current for tenants.</span></div>{% icon "chevron" %}</a>
       </div>
     </div>
-    {% include "accounts/dashboards/_account_panel.html" %}
+    <div class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Needs your review</span><h2>Recent applications</h2></div>
+        {% if app_pending %}<a href="{% url 'properties:owner_applications' %}" class="text-xs font-bold text-brand no-underline">View all →</a>{% endif %}
+      </div>
+      <div class="grid gap-1 p-2.5">
+        {% for app in recent_pending %}
+        <a href="{% url 'properties:owner_applications' %}" class="flex items-center gap-3 rounded-lg p-3 no-underline hover:bg-slate-50">
+          {% include "partials/avatar.html" with u=app.tenant css="avatar avatar-small" %}
+          <div class="min-w-0 flex-1">
+            <strong class="block truncate text-xs text-slate-800">{{ app.tenant.get_full_name|default:app.tenant.username }}</strong>
+            <span class="block truncate text-[11px] text-slate-500">{{ app.unit.property.name }} · {{ app.unit.name }}</span>
+          </div>
+          <span class="text-[11px] text-slate-400">{{ app.created_at|date:"M j" }}</span>
+        </a>
+        {% empty %}
+        <p class="m-0 px-3 py-8 text-center text-sm text-slate-400">No applications waiting for review.</p>
+        {% endfor %}
+      </div>
+    </div>
   </section>
 </div>
 {% endblock %}
