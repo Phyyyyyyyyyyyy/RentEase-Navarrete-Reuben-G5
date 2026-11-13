@@ -25,6 +25,17 @@ RentEase connects **property owners**, **tenants**, **staff**, and **administrat
 | **Role-based dashboards** | Four roles: **Admin**, **Property Owner**, **Tenant**, **Staff**. After login, each user goes to their own dashboard, with content and sidebar navigation for that role. Typing another role's dashboard URL sends the user back to their own dashboard with an error message. |
 | **User profile** | Users view their own details at `/profile/` and update their name, email, contact number, and profile photo at `/profile/edit/`. The URL never contains a user ID, and the views always use the logged-in user, so nobody can view or edit another person's profile. |
 
+## Browse Properties & My Applications (Tenant)
+
+| Feature | Details |
+|---|---|
+| **Browse** | Lists only properties that have at least one vacant unit, with a "starts at" rent and a vacant-unit count. Tenants can search by name, address, or city, and filter by property type and maximum monthly rent. |
+| **Property details** | Shows the description, amenities, owner contact, and every unit (bedrooms, bathrooms, floor area, rent, Vacant/Occupied). |
+| **Apply** | The tenant picks a vacant unit, an optional move-in date, and a message for the owner. Occupied units, units from another property, past move-in dates, and a second pending application for the same unit are all rejected. A database constraint also enforces one pending application per tenant per unit. |
+| **My Applications** | Shows only the logged-in tenant's applications, with status tabs (Pending, Approved, Rejected, Withdrawn). Pending applications can be withdrawn. A tenant can't see or withdraw anyone else's. |
+
+Admins can manage properties, units, and applications in the Django admin. Owner-side property management and application review come in a later phase.
+
 Public registration offers only **Tenant** and **Property Owner**. **Admin** and **Staff** accounts are created by an admin from **Users & Access** (the Django admin).
 
 ### Pages
@@ -40,6 +51,9 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 | `/dashboard/staff/` | Staff | Tenant and owner counts, staff workspace |
 | `/profile/` | Logged in | View your own profile |
 | `/profile/edit/` | Logged in | Edit your own profile and photo |
+| `/browse/` | Tenant | Search properties with vacant units; filter by type and maximum rent |
+| `/browse/<id>/` | Tenant | Property details and units; apply for a vacant unit |
+| `/applications/` | Tenant | Your applications, filterable by status; withdraw pending ones |
 | `/django-admin/` | Admin | Manage users, roles, and active status |
 
 ---
@@ -91,7 +105,8 @@ DATABASE_URL=postgresql://postgres.<project-ref>:<password>@aws-1-<region>.poole
 
 ```powershell
 .\venv\Scripts\python manage.py migrate
-.\venv\Scripts\python manage.py seed_demo_users     # optional: one demo account per role
+.\venv\Scripts\python manage.py seed_demo_users       # optional: one demo account per role
+.\venv\Scripts\python manage.py seed_demo_properties  # optional: 3 sample properties, 7 units, 1 application
 .\venv\Scripts\python manage.py runserver
 ```
 
@@ -150,10 +165,10 @@ npm run tw:watch     # leave running in a second terminal next to runserver
 ## Tests
 
 ```powershell
-.\venv\Scripts\python manage.py test accounts
+.\venv\Scripts\python manage.py test
 ```
 
-The 16 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership.
+The 30 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), and application ownership and withdrawal.
 
 ---
 
@@ -174,6 +189,7 @@ The 16 tests cover registration validation (required fields, email format, dupli
 
 ```
 ├── config/                 # Django settings (reads .env) and root URLs
+├── properties/             # Properties, units, applications (browse + my applications)
 ├── accounts/               # Account feature app
 │   ├── models.py           # Custom User: role, phone, profile_photo
 │   ├── forms.py            # Registration, login, and profile forms
@@ -196,7 +212,7 @@ The 16 tests cover registration validation (required fields, email format, dupli
 ## Roadmap
 
 - [x] **Project Development 1:** Account Feature (registration, login and logout, role dashboards, profile)
-- [ ] Property and unit management
-- [ ] Rental applications
+- [x] Tenant: browse properties and apply, My Applications
+- [ ] Owner: property and unit management, application review
 - [ ] Lease and payment management
 - [ ] Tenant portal and maintenance
