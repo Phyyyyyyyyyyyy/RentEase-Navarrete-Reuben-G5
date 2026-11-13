@@ -25,9 +25,14 @@ class User(AbstractUser):
     profile_photo = models.ImageField(upload_to='profile_photos/', blank=True)
 
     def save(self, *args, **kwargs):
-        # Accounts made with `createsuperuser` should land on the Admin dashboard.
+        # Keep the Admin role and Django's admin flags in sync:
+        # `createsuperuser` accounts get the Admin dashboard, and Admin-role
+        # users can open the Django admin site to manage users.
         if self.is_superuser:
             self.role = self.Role.ADMIN
+        if self.role == self.Role.ADMIN:
+            self.is_staff = True
+            self.is_superuser = True
         super().save(*args, **kwargs)
 
     @property
