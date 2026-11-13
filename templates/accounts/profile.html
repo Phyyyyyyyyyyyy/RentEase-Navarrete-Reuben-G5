@@ -1,0 +1,35 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}My profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div class="page-stack narrow-page">
+  <div class="page-heading">
+    <div><span class="eyebrow">User profile</span><h1>My profile</h1><p>The information linked to your RentEase account.</p></div>
+    <a class="primary-button" href="{% url 'accounts:profile_edit' %}">{% icon "edit" 16 %}Edit profile</a>
+  </div>
+  <div class="profile-layout">
+    <section class="panel profile-card">
+      {% include "partials/avatar.html" with u=profile_user css="profile-avatar-large" %}
+      <h2>{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+      <p>@{{ profile_user.username }}</p>
+      <div class="profile-meta">
+        <span>Role</span><strong>{{ profile_user.get_role_display }}</strong>
+        <span>Status</span><strong>{% if profile_user.is_active %}Active{% else %}Inactive{% endif %}</strong>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Account details</span><h2>Personal information</h2></div></div>
+      <dl class="detail-list">
+        <dt>First name</dt><dd>{{ profile_user.first_name|default:"—" }}</dd>
+        <dt>Last name</dt><dd>{{ profile_user.last_name|default:"—" }}</dd>
+        <dt>Username</dt><dd>{{ profile_user.username }}</dd>
+        <dt>Email address</dt><dd>{{ profile_user.email }}</dd>
+        <dt>Contact number</dt><dd>{{ profile_user.phone|default:"—" }}</dd>
+        <dt>Member since</dt><dd>{{ profile_user.date_joined|date:"F j, Y" }}</dd>
+        <dt>Last login</dt><dd>{{ profile_user.last_login|date:"F j, Y g:i A"|default:"—" }}</dd>
+      </dl>
+    </section>
+  </div>
+</div>
+{% endblock %}

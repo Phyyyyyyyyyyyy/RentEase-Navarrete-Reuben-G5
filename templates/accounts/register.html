@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Create account{% endblock %}
+{% block body %}
+<div class="auth-layout">
+  <section class="auth-visual register-visual">
+    <div class="auth-visual-inner">
+      <div class="auth-logo"><span>R</span>RentEase</div>
+      <div class="auth-copy">
+        <span class="eyebrow light">Account registration</span>
+        <h1>Start with the portal that matches your rental role.</h1>
+        <p>Public registration is for Tenant and Property Owner accounts. Admin and Staff accounts are created by an administrator.</p>
+      </div>
+    </div>
+  </section>
+  <section class="auth-form-side">
+    <form class="auth-card wide-auth-card" method="post" novalidate>
+      {% csrf_token %}
+      <div class="auth-card-heading"><span class="eyebrow">Create account</span><h2>Register for RentEase</h2><p>All fields are required.</p></div>
+      {% include "partials/messages.html" %}
+      {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+      <div class="form-grid two">
+        {% include "partials/field.html" with field=form.first_name %}
+        {% include "partials/field.html" with field=form.last_name %}
+      </div>
+      <div class="form-grid two">
+        {% include "partials/field.html" with field=form.username %}
+        {% include "partials/field.html" with field=form.phone %}
+      </div>
+      {% include "partials/field.html" with field=form.email %}
+      {% include "partials/field.html" with field=form.role %}
+      <div class="form-grid two">
+        {% include "partials/field.html" with field=form.password1 %}
+        {% include "partials/field.html" with field=form.password2 %}
+      </div>
+      <small class="field-help">Use at least 8 characters. Avoid common or all-numeric passwords.</small>
+      <button class="primary-button full" type="submit">Create account</button>
+      <p class="auth-switch">Already registered? <a href="{% url 'accounts:login' %}">Back to sign in</a></p>
+    </form>
+  </section>
+</div>
+{% endblock %}

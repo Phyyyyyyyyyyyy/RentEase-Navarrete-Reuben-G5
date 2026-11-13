@@ -1,0 +1,29 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Staff dashboard{% endblock %}
+{% block page_title %}Staff Dashboard{% endblock %}
+{% block content %}
+<div class="page-stack">
+  <section class="hero-panel">
+    <div><span class="eyebrow light">Staff portal</span><h1>Good day, {{ user.first_name|default:user.username }}.</h1><p>Support owners and tenants and keep property records accurate.</p></div>
+    <div class="hero-scope"><span>Signed in as</span><strong>Staff</strong><small>View-only property access</small></div>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">{% icon "users" %}</div><div><span>Active tenants</span><strong>{{ tenant_count }}</strong><small>registered tenants</small></div></div>
+    <div class="stat-card"><div class="stat-icon">{% icon "building" %}</div><div><span>Active owners</span><strong>{{ owner_count }}</strong><small>registered property owners</small></div></div>
+  </section>
+
+  <section class="dashboard-grid">
+    <div class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Quick actions</span><h2>Today's work</h2></div></div>
+      <div class="quick-actions">
+        <span class="quick-disabled">{% icon "building" %}<div><strong>View property records</strong><span>Review property and unit information. Coming soon.</span></div><em>Soon</em></span>
+        <span class="quick-disabled">{% icon "file" %}<div><strong>View applications</strong><span>Monitor submitted rental applications. Coming soon.</span></div><em>Soon</em></span>
+        <a href="{% url 'accounts:profile' %}">{% icon "user" %}<div><strong>Update profile</strong><span>Keep your staff contact details current.</span></div>{% icon "chevron" %}</a>
+      </div>
+    </div>
+    {% include "accounts/dashboards/_account_panel.html" %}
+  </section>
+</div>
+{% endblock %}

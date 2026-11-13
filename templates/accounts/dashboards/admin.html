@@ -1,0 +1,52 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Admin dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="page-stack">
+  <section class="hero-panel">
+    <div><span class="eyebrow light">Administrator portal</span><h1>Good day, {{ user.first_name|default:user.username }}.</h1><p>Manage user accounts, roles, and access across RentEase.</p></div>
+    <div class="hero-scope"><span>Signed in as</span><strong>Admin</strong><small>Full system access</small></div>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">{% icon "users" %}</div><div><span>Registered users</span><strong>{{ total_users }}</strong><small>{{ active_users }} active accounts</small></div></div>
+    {% for label, count in role_counts %}
+      {% if label != "Admin" %}
+      <div class="stat-card"><div class="stat-icon">{% icon "user" %}</div><div><span>{{ label }}s</span><strong>{{ count }}</strong><small>accounts</small></div></div>
+      {% endif %}
+    {% endfor %}
+  </section>
+
+  <section class="dashboard-grid">
+    <div class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Newest accounts</span><h2>Recent registrations</h2></div><a class="secondary-button compact" href="{% url 'admin:accounts_user_changelist' %}">Manage users</a></div>
+      <div class="table-wrap">
+        <table class="compact-table">
+          <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+          <tbody>
+          {% for u in recent_users %}
+            <tr>
+              <td><div class="table-user">{% include "partials/avatar.html" with u=u css="avatar avatar-small" %}<div><strong>{{ u.get_full_name|default:u.username }}</strong><span>{{ u.email }}</span></div></div></td>
+              <td><span class="badge badge-info">{{ u.get_role_display }}</span></td>
+              <td>{% if u.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</td>
+              <td>{{ u.date_joined|date:"M j, Y" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="empty-inline">No users yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Quick actions</span><h2>Administration</h2></div></div>
+      <div class="quick-actions">
+        <a href="{% url 'admin:accounts_user_add' %}">{% icon "users" %}<div><strong>Create an account</strong><span>Add Admin or Staff users and assign roles.</span></div>{% icon "chevron" %}</a>
+        <a href="{% url 'admin:accounts_user_changelist' %}">{% icon "shield" %}<div><strong>Roles & access</strong><span>Change roles or deactivate accounts.</span></div>{% icon "chevron" %}</a>
+        <a href="{% url 'accounts:profile' %}">{% icon "user" %}<div><strong>My profile</strong><span>Keep your own account details current.</span></div>{% icon "chevron" %}</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

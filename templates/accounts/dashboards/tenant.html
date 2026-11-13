@@ -1,0 +1,24 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Tenant dashboard{% endblock %}
+{% block page_title %}Tenant Dashboard{% endblock %}
+{% block content %}
+<div class="page-stack">
+  <section class="hero-panel">
+    <div><span class="eyebrow light">Tenant portal</span><h1>Good day, {{ user.first_name|default:user.username }}.</h1><p>Find a rental, track your applications, and manage your account.</p></div>
+    <div class="hero-scope"><span>Signed in as</span><strong>Tenant</strong><small>Browse and apply for rentals</small></div>
+  </section>
+
+  <section class="dashboard-grid">
+    <div class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Quick actions</span><h2>Find your next home</h2></div></div>
+      <div class="quick-actions">
+        <span class="quick-disabled">{% icon "search" %}<div><strong>Browse properties</strong><span>Search vacant units by type and rent. Coming soon.</span></div><em>Soon</em></span>
+        <span class="quick-disabled">{% icon "file" %}<div><strong>Track my applications</strong><span>See the status of your rental applications. Coming soon.</span></div><em>Soon</em></span>
+        <a href="{% url 'accounts:profile' %}">{% icon "user" %}<div><strong>Update profile</strong><span>Owners use these details to contact you.</span></div>{% icon "chevron" %}</a>
+      </div>
+    </div>
+    {% include "accounts/dashboards/_account_panel.html" %}
+  </section>
+</div>
+{% endblock %}

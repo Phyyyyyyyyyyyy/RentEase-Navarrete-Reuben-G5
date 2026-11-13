@@ -1,0 +1,46 @@
+/* Additions for the Django templates (links instead of React buttons, form errors, messages). */
+a { color: var(--blue); }
+.auth-switch a { color: var(--blue); font-weight: 750; text-decoration: none; }
+.primary-button, .secondary-button, .danger-button { text-decoration: none; }
+
+/* Sidebar links */
+.side-nav a, .side-nav .nav-disabled { color: #9eabc1; min-height: 42px; border-radius: 10px; display: flex; align-items: center; gap: 11px; padding: 0 12px; font-size: 12px; font-weight: 650; text-decoration: none; }
+.side-nav a:hover, .side-nav a.active { background: rgba(74,115,203,.17); color: white; }
+.side-nav a.active { box-shadow: inset 3px 0 var(--blue); }
+.side-nav .nav-disabled { opacity: .5; cursor: default; }
+.nav-disabled em, .quick-disabled em { margin-left: auto; font-style: normal; font-size: 9px; border: 1px solid currentColor; border-radius: 99px; padding: 1px 6px; }
+.sidebar-footer form { margin: 0; }
+.topbar-user { text-decoration: none; }
+.mobile-overlay[hidden] { display: none !important; }
+
+/* Photos used in place of initials */
+img.avatar-photo { object-fit: cover; padding: 0; }
+img.profile-avatar-large { object-fit: cover; }
+
+/* Quick actions as links */
+.quick-actions a, .quick-actions .quick-disabled { display: grid; grid-template-columns: 38px 1fr auto; align-items: center; gap: 11px; padding: 13px; border-radius: 10px; color: #546173; text-decoration: none; }
+.quick-actions a:hover { background: #f7f9fd; }
+.quick-actions .quick-disabled { opacity: .55; }
+.quick-actions a > svg:first-child, .quick-actions .quick-disabled > svg:first-child { padding: 9px; width: 38px; height: 38px; border-radius: 10px; background: #eef4ff; color: var(--blue); }
+.quick-actions a strong, .quick-actions .quick-disabled strong { display: block; color: #263247; font-size: 12px; }
+.quick-actions a span, .quick-actions .quick-disabled span { display: block; color: #8a93a2; font-size: 10px; margin-top: 2px; }
+
+/* Messages & form errors */
+.messages { display: grid; gap: 8px; margin-bottom: 18px; }
+.auth-card .messages { margin-bottom: 0; }
+.field-error { color: #a92d25; font-weight: 500; font-size: 11px; }
+.field-help { color: #8a93a3; font-weight: 400; font-size: 11px; line-height: 1.5; }
+.field-help ul { margin: 4px 0 0; padding-left: 18px; }
+
+/* Read-only detail lists */
+.detail-list { margin: 0; padding: 18px 22px 22px; display: grid; grid-template-columns: 160px 1fr; gap: 12px 16px; font-size: 13px; }
+.detail-list dt { color: #8a94a2; }
+.detail-list dd { margin: 0; color: #263147; font-weight: 600; word-break: break-word; }
+
+.compact-table { min-width: 520px !important; }
+.stats-grid:has(> :nth-child(2):last-child) { grid-template-columns: repeat(2, 1fr); }
+
+@media (max-width: 560px) {
+  .detail-list { grid-template-columns: 1fr; gap: 2px; }
+  .detail-list dd { margin-bottom: 10px; }
+}

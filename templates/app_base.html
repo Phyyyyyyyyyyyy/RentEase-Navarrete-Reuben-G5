@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load rentease %}
+{% block body %}
+{% role_menu user as menu %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div><strong>RentEase</strong><span>Property Management</span></div>
+    </div>
+    <div class="role-panel">
+      {% include "partials/avatar.html" with u=user css="avatar" %}
+      <div class="role-copy"><strong>{{ user.get_full_name|default:user.username }}</strong><span>{{ user.get_role_display }}</span></div>
+    </div>
+    <nav class="side-nav">
+      {% for url_name, label, icon_name in menu %}
+        {% if url_name %}
+          {% url url_name as item_url %}
+          <a href="{{ item_url }}" class="{% if request.path == item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span></a>
+        {% else %}
+          <span class="nav-disabled" title="Coming in a later phase">{% icon icon_name 19 %}<span>{{ label }}</span><em>Soon</em></span>
+        {% endif %}
+      {% endfor %}
+    </nav>
+    <div class="sidebar-footer">
+      <div class="scope-pill"><span>Phase</span><strong>Accounts</strong></div>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button class="logout-button" type="submit">{% icon "logout" 19 %}Sign out</button>
+      </form>
+    </div>
+  </aside>
+  <div class="mobile-overlay" id="mobile-overlay" hidden></div>
+  <main class="main-area">
+    <header class="topbar">
+      <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Open menu">{% icon "menu" %}</button>
+      <div class="topbar-title"><span>RentEase</span><strong>{% block page_title %}Dashboard{% endblock %}</strong></div>
+      <a class="topbar-user" href="{% url 'accounts:profile' %}">
+        {% include "partials/avatar.html" with u=user css="avatar avatar-small" %}
+        <span>{{ user.get_full_name|default:user.username }}</span>
+      </a>
+    </header>
+    <div class="content-area">
+      {% include "partials/messages.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+<script>
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    var overlay = document.getElementById('mobile-overlay');
+    function toggle(open) { sidebar.classList.toggle('sidebar-open', open); overlay.hidden = !open; }
+    document.getElementById('mobile-menu').addEventListener('click', function () { toggle(true); });
+    overlay.addEventListener('click', function () { toggle(false); });
+  })();
+</script>
+{% endblock %}

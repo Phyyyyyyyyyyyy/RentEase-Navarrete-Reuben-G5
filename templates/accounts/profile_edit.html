@@ -1,0 +1,38 @@
+{% extends "app_base.html" %}
+{% block title %}Edit profile{% endblock %}
+{% block page_title %}Edit Profile{% endblock %}
+{% block content %}
+<div class="page-stack narrow-page">
+  <div class="page-heading">
+    <div><span class="eyebrow">User profile</span><h1>Edit profile</h1><p>Update your name, contact details, and photo.</p></div>
+  </div>
+  <div class="profile-layout">
+    <section class="panel profile-card">
+      {% include "partials/avatar.html" with u=user css="profile-avatar-large" %}
+      <h2>{{ user.get_full_name|default:user.username }}</h2>
+      <p>@{{ user.username }}</p>
+      <div class="profile-meta">
+        <span>Role</span><strong>{{ user.get_role_display }}</strong>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-heading"><div><span class="eyebrow">Profile information</span><h2>Edit account details</h2></div></div>
+      <form method="post" enctype="multipart/form-data" class="form-stack" novalidate>
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+        <div class="form-grid two">
+          {% include "partials/field.html" with field=form.first_name %}
+          {% include "partials/field.html" with field=form.last_name %}
+        </div>
+        {% include "partials/field.html" with field=form.email %}
+        {% include "partials/field.html" with field=form.phone %}
+        {% include "partials/field.html" with field=form.profile_photo %}
+        <div class="form-actions">
+          <a class="secondary-button" href="{% url 'accounts:profile' %}">Cancel</a>
+          <button class="primary-button" type="submit">Save changes</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

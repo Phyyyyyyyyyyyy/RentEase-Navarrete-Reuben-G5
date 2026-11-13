@@ -1,0 +1,9 @@
+<div class="panel">
+  <div class="panel-heading"><div><span class="eyebrow">Your account</span><h2>Account summary</h2></div></div>
+  <dl class="detail-list">
+    <dt>Name</dt><dd>{{ user.get_full_name|default:"—" }}</dd>
+    <dt>Email</dt><dd>{{ user.email }}</dd>
+    <dt>Contact number</dt><dd>{{ user.phone|default:"—" }}</dd>
+    <dt>Role</dt><dd>{{ user.get_role_display }}</dd>
+  </dl>
+</div>

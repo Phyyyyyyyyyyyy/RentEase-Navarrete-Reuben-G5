@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load rentease %}
+{% block title %}Sign in{% endblock %}
+{% block body %}
+<div class="auth-layout">
+  <section class="auth-visual">
+    <div class="auth-visual-inner">
+      <div class="auth-logo"><span>R</span>RentEase</div>
+      <div class="auth-copy">
+        <span class="eyebrow light">Streamlined rental management</span>
+        <h1>Manage access, properties, and rental units in one place.</h1>
+        <p>Owners list properties, tenants find their next home, and staff and admins keep everything running.</p>
+      </div>
+      <div class="auth-feature-grid">
+        <div>{% icon "shield" %}<strong>Role-based access</strong><span>Admin, owner, tenant, and staff portals</span></div>
+        <div>{% icon "key" %}<strong>Secure accounts</strong><span>Hashed passwords and protected pages</span></div>
+      </div>
+    </div>
+  </section>
+  <section class="auth-form-side">
+    <form class="auth-card" method="post" novalidate>
+      {% csrf_token %}
+      <div class="auth-card-heading"><span class="eyebrow">Welcome back</span><h2>Sign in to RentEase</h2><p>Use your username or email address.</p></div>
+      {% include "partials/messages.html" %}
+      {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+      {% include "partials/field.html" with field=form.username %}
+      {% include "partials/field.html" with field=form.password %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="primary-button full" type="submit">Sign in {% icon "arrow" 18 %}</button>
+      <p class="auth-switch">No account yet? <a href="{% url 'accounts:register' %}">Create an account</a></p>
+    </form>
+  </section>
+</div>
+{% endblock %}
