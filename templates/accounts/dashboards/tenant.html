@@ -9,12 +9,19 @@
     <div class="hero-scope"><span>Signed in as</span><strong>Tenant</strong><small>Browse and apply for rentals</small></div>
   </section>
 
+  <section class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">{% icon "home" %}</div><div><span>Vacant units</span><strong>{{ vacant_units }}</strong><small>available to apply for</small></div></div>
+    <div class="stat-card"><div class="stat-icon">{% icon "file" %}</div><div><span>My applications</span><strong>{{ app_total }}</strong><small>submitted so far</small></div></div>
+    <div class="stat-card"><div class="stat-icon">{% icon "clock" %}</div><div><span>Pending</span><strong>{{ app_pending }}</strong><small>awaiting owner review</small></div></div>
+    <div class="stat-card"><div class="stat-icon">{% icon "check" %}</div><div><span>Approved</span><strong>{{ app_approved }}</strong><small>applications approved</small></div></div>
+  </section>
+
   <section class="dashboard-grid">
     <div class="panel">
       <div class="panel-heading"><div><span class="eyebrow">Quick actions</span><h2>Find your next home</h2></div></div>
       <div class="quick-actions">
-        <span class="quick-disabled">{% icon "search" %}<div><strong>Browse properties</strong><span>Search vacant units by type and rent. Coming soon.</span></div><em>Soon</em></span>
-        <span class="quick-disabled">{% icon "file" %}<div><strong>Track my applications</strong><span>See the status of your rental applications. Coming soon.</span></div><em>Soon</em></span>
+        <a href="{% url 'properties:browse' %}">{% icon "search" %}<div><strong>Browse properties</strong><span>Search vacant units by type and rent, then apply.</span></div>{% icon "chevron" %}</a>
+        <a href="{% url 'properties:my_applications' %}">{% icon "file" %}<div><strong>Track my applications</strong><span>See the status of your rental applications.</span></div>{% icon "chevron" %}</a>
         <a href="{% url 'accounts:profile' %}">{% icon "user" %}<div><strong>Update profile</strong><span>Owners use these details to contact you.</span></div>{% icon "chevron" %}</a>
       </div>
     </div>

@@ -16,7 +16,7 @@
       {% for url_name, label, icon_name in menu %}
         {% if url_name %}
           {% url url_name as item_url %}
-          <a href="{{ item_url }}" class="{% if request.path == item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span></a>
+          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span></a>
         {% else %}
           <span class="nav-disabled" title="Coming in a later phase">{% icon icon_name 19 %}<span>{{ label }}</span><em>Soon</em></span>
         {% endif %}

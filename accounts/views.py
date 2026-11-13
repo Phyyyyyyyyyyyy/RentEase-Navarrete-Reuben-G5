@@ -78,7 +78,15 @@ def dashboard_owner(request):
 
 @role_required(Role.TENANT)
 def dashboard_tenant(request):
-    return render(request, 'accounts/dashboards/tenant.html')
+    from properties.models import Application, Unit
+
+    apps = request.user.applications
+    return render(request, 'accounts/dashboards/tenant.html', {
+        'vacant_units': Unit.objects.filter(status=Unit.Status.VACANT).count(),
+        'app_total': apps.count(),
+        'app_pending': apps.filter(status=Application.Status.PENDING).count(),
+        'app_approved': apps.filter(status=Application.Status.APPROVED).count(),
+    })
 
 
 @role_required(Role.STAFF)

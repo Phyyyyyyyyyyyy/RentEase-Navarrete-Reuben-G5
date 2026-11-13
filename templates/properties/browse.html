@@ -1,0 +1,73 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Browse properties{% endblock %}
+{% block page_title %}Browse Properties{% endblock %}
+{% block content %}
+<div class="grid gap-6">
+
+  {# Search & filters #}
+  <section class="grid gap-5 rounded-2xl bg-gradient-to-br from-navy to-brand-dark p-6 text-white shadow-lg shadow-blue-900/10 sm:p-7">
+    <div>
+      <span class="text-[11px] font-extrabold uppercase tracking-widest text-blue-200">Find your next home</span>
+      <h1 class="m-0 mt-1 text-2xl font-bold tracking-tight">Browse available properties</h1>
+      <p class="m-0 mt-1 text-sm text-blue-100/80">Only properties with at least one vacant unit are shown.</p>
+    </div>
+    <form method="get" class="grid gap-2.5 md:grid-cols-[1fr_190px_170px_auto]">
+      {{ form.q }}
+      {{ form.type }}
+      {{ form.max_rent }}
+      <div class="flex gap-2">
+        <button type="submit" class="flex-1 cursor-pointer rounded-xl border-0 bg-white px-5 py-2.5 text-sm font-bold text-brand-dark transition hover:bg-blue-50">Search</button>
+        {% if filtered %}<a href="{% url 'properties:browse' %}" class="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white no-underline hover:bg-white/10">Clear</a>{% endif %}
+      </div>
+    </form>
+    {% if form.errors %}<p class="m-0 text-xs text-red-200">Enter a valid maximum rent (a whole number).</p>{% endif %}
+  </section>
+
+  <div class="flex items-end justify-between">
+    <p class="m-0 text-sm text-slate-500"><strong class="text-slate-800">{{ properties|length }}</strong> propert{{ properties|length|pluralize:"y,ies" }} found</p>
+  </div>
+
+  {# Results #}
+  {% if properties %}
+  <section class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    {% for p in properties %}
+    <article class="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+      <div class="relative flex h-36 items-end justify-between p-4 text-white
+        {% cycle 'bg-gradient-to-br from-blue-800 to-blue-500' 'bg-gradient-to-br from-teal-800 to-teal-500' 'bg-gradient-to-br from-amber-800 to-amber-500' %}">
+        <span class="absolute left-4 top-4 rounded-full border border-white/25 bg-black/20 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">{{ p.get_property_type_display }}</span>
+        <span class="text-4xl font-black opacity-60">{{ p.name|slice:":1" }}</span>
+        <span class="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-emerald-700">{{ p.vacant_count }} vacant</span>
+      </div>
+      <div class="flex flex-1 flex-col gap-3 p-5">
+        <div>
+          <h3 class="m-0 text-base font-bold text-slate-900">{{ p.name }}</h3>
+          <p class="m-0 mt-1 text-xs text-slate-500">{{ p.address }}, {{ p.city }}</p>
+        </div>
+        <p class="m-0 line-clamp-2 text-xs leading-relaxed text-slate-500">{{ p.description|default:"No description provided." }}</p>
+        {% if p.amenity_list %}
+        <div class="flex flex-wrap gap-1.5">
+          {% for a in p.amenity_list %}<span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">{{ a }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+          <div>
+            <span class="block text-[11px] text-slate-400">Starts at</span>
+            <strong class="text-lg text-slate-900">{{ p.min_rent|peso }}</strong><span class="text-xs text-slate-400"> /month</span>
+          </div>
+          <a href="{% url 'properties:detail' p.pk %}" class="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white no-underline shadow-md shadow-blue-600/20 transition hover:bg-brand-dark">View units</a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="grid place-items-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-slate-400">
+    {% icon "search" 36 %}
+    <h3 class="m-0 mt-3 text-base font-bold text-slate-700">No properties match your search</h3>
+    <p class="m-0 mt-1 text-sm">Try a different keyword, property type, or a higher maximum rent.</p>
+    {% if filtered %}<a href="{% url 'properties:browse' %}" class="mt-4 text-sm font-bold text-brand no-underline">Clear filters</a>{% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

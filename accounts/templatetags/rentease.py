@@ -49,8 +49,8 @@ ROLE_MENUS = {
     ],
     'tenant': [
         ('accounts:dashboard_tenant', 'Dashboard', 'home'),
-        (None, 'Browse Properties', 'search'),
-        (None, 'My Applications', 'file'),
+        ('properties:browse', 'Browse Properties', 'search'),
+        ('properties:my_applications', 'My Applications', 'file'),
         ('accounts:profile', 'My Profile', 'user'),
     ],
     'staff': [
@@ -60,6 +60,20 @@ ROLE_MENUS = {
         ('accounts:profile', 'My Profile', 'user'),
     ],
 }
+
+
+@register.filter
+def startswith(value, prefix):
+    return bool(prefix) and str(value).startswith(str(prefix))
+
+
+@register.filter
+def peso(value):
+    """Format a number as Philippine pesos, e.g. 12000 -> ₱12,000."""
+    try:
+        return f'₱{float(value):,.0f}'
+    except (TypeError, ValueError):
+        return '—'
 
 
 @register.simple_tag

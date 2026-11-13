@@ -1,0 +1,66 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}My applications{% endblock %}
+{% block page_title %}My Applications{% endblock %}
+{% block content %}
+<div class="grid gap-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <span class="text-[11px] font-extrabold uppercase tracking-widest text-brand">Rental applications</span>
+      <h1 class="m-0 mt-1 text-2xl font-bold tracking-tight text-slate-900">My applications</h1>
+      <p class="m-0 mt-1 text-sm text-slate-500">Track the status of every unit you've applied for.</p>
+    </div>
+    <a href="{% url 'properties:browse' %}" class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white no-underline shadow-md shadow-blue-600/20 hover:bg-brand-dark">{% icon "search" 16 %}Find more rentals</a>
+  </div>
+
+  {# Status tabs #}
+  <nav class="flex flex-wrap gap-2">
+    {% for value, label, count in status_tabs %}
+      <a href="?status={{ value }}" class="rounded-full border px-3.5 py-1.5 text-xs font-semibold no-underline transition
+        {% if status == value %}border-brand bg-brand text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-blue-300{% endif %}">
+        {{ label }} <span class="{% if status == value %}text-blue-100{% else %}text-slate-400{% endif %}">{{ count }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+
+  <section class="grid gap-3">
+    {% for app in applications %}
+    <article class="grid gap-4 rounded-2xl border border-line bg-white p-5 shadow-sm sm:grid-cols-[48px_1fr_auto] sm:items-center">
+      <div class="hidden h-12 w-12 place-items-center rounded-xl bg-blue-50 text-brand sm:grid">{% icon "building" 22 %}</div>
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <strong class="text-sm text-slate-900">{{ app.unit.property.name }} · {{ app.unit.name }}</strong>
+          {% if app.status == "pending" %}<span class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">Pending</span>
+          {% elif app.status == "approved" %}<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Approved</span>
+          {% elif app.status == "rejected" %}<span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Rejected</span>
+          {% else %}<span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-500">Withdrawn</span>{% endif %}
+        </div>
+        <p class="m-0 mt-1 text-xs text-slate-500">{{ app.unit.property.address }}, {{ app.unit.property.city }}</p>
+        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+          <span>Rent: <strong class="text-slate-700">{{ app.unit.monthly_rent|peso }}/mo</strong></span>
+          <span>Applied: <strong class="text-slate-700">{{ app.created_at|date:"M j, Y" }}</strong></span>
+          {% if app.preferred_move_in %}<span>Move-in: <strong class="text-slate-700">{{ app.preferred_move_in|date:"M j, Y" }}</strong></span>{% endif %}
+        </div>
+        {% if app.message %}<p class="m-0 mt-2 line-clamp-2 text-xs italic text-slate-500">“{{ app.message }}”</p>{% endif %}
+      </div>
+      <div class="flex gap-2 sm:flex-col sm:items-end">
+        <a href="{% url 'properties:detail' app.unit.property.pk %}" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 no-underline hover:bg-slate-50">View property</a>
+        {% if app.can_withdraw %}
+        <form method="post" action="{% url 'properties:withdraw' app.pk %}" class="m-0" onsubmit="return confirm('Withdraw this application?');">
+          {% csrf_token %}
+          <button type="submit" class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">Withdraw</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="grid place-items-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center text-slate-400">
+      {% icon "file" 36 %}
+      <h3 class="m-0 mt-3 text-base font-bold text-slate-700">{% if status %}No {{ status }} applications{% else %}No applications yet{% endif %}</h3>
+      <p class="m-0 mt-1 text-sm">Browse available properties and apply for a vacant unit.</p>
+      <a href="{% url 'properties:browse' %}" class="mt-4 text-sm font-bold text-brand no-underline">Browse properties →</a>
+    </div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}
