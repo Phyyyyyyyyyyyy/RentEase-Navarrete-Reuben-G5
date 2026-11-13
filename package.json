@@ -1,0 +1,13 @@
+{
+  "name": "rentease",
+  "private": true,
+  "description": "Tailwind CSS build tooling for the RentEase Django templates (no JavaScript framework).",
+  "scripts": {
+    "tw:build": "tailwindcss -i ./static_src/tailwind.css -o ./static/css/main.css --minify",
+    "tw:watch": "tailwindcss -i ./static_src/tailwind.css -o ./static/css/main.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "tailwindcss": "^4.3.5"
+  }
+}
