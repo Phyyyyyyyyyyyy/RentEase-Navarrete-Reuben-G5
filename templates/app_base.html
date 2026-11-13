@@ -39,6 +39,10 @@
         {% include "partials/avatar.html" with u=user css="avatar avatar-small" %}
         <span>{{ user.get_full_name|default:user.username }}</span>
       </a>
+      <form method="post" action="{% url 'accounts:logout' %}" class="topbar-logout">
+        {% csrf_token %}
+        <button class="secondary-button compact" type="submit">{% icon "logout" 16 %}<span>Sign out</span></button>
+      </form>
     </header>
     <div class="content-area">
       {% include "partials/messages.html" %}

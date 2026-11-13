@@ -11,6 +11,10 @@ a { color: var(--blue); }
 .nav-disabled em, .quick-disabled em { margin-left: auto; font-style: normal; font-size: 9px; border: 1px solid currentColor; border-radius: 99px; padding: 1px 6px; }
 .sidebar-footer form { margin: 0; }
 .topbar-user { text-decoration: none; }
+.topbar-logout { margin: 0 0 0 14px; }
+.sidebar { overflow-y: auto; }
+.logout-button { color: #c9d3e6; border: 1px solid rgba(255,255,255,.12); }
+@media (max-width: 560px) { .topbar-logout span { display: none; } }
 .mobile-overlay[hidden] { display: none !important; }
 
 /* Photos used in place of initials */
