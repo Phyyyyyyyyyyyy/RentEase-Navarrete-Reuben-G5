@@ -145,6 +145,17 @@ This should print `postgresql aws-1-<region>.pooler.supabase.com`.
 
 ---
 
+## Database Security (Supabase)
+
+Supabase exposes tables in the `public` schema through its Data API, which uses the `anon` and `authenticated` roles. RentEase doesn't use that API; Django connects directly as `postgres`. After every `migrate`, `accounts/db_security.py` automatically:
+
+- enables **Row Level Security** on every table in `public`, and
+- revokes all `anon` and `authenticated` privileges on those tables.
+
+As a result, nobody can read data such as `accounts_user` through the Data API, and Supabase's "RLS Disabled in Public" and "Sensitive Columns Exposed" warnings are resolved. Django isn't affected, because the `postgres` role bypasses RLS.
+
+---
+
 ## Styling (Tailwind CSS)
 
 The site uses one stylesheet, `static/css/main.css`. It's **generated** from `static_src/` by the Tailwind CLI and committed, so the app runs without Node. To change styles:
