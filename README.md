@@ -23,7 +23,7 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 
 - Python 3 and Django 6
 - PostgreSQL (Supabase) through `psycopg`
-- Django templates and plain CSS (`static/css/`)
+- Django templates styled with [Tailwind CSS v4](https://tailwindcss.com) plus the original RentEase stylesheet
 - `python-dotenv` and `dj-database-url` for reading settings from `.env`
 - Pillow for profile photo uploads
 
@@ -84,6 +84,19 @@ Open http://127.0.0.1:8000/.
 
 You can also run `python manage.py createsuperuser`. Superusers automatically get the Admin role.
 
+## Styling (Tailwind CSS)
+
+The site uses one stylesheet, `static/css/main.css`. It's **generated** from `static_src/` by the Tailwind CLI and committed, so the app runs without Node. To change styles, install Node.js and run:
+
+```powershell
+npm install          # one time
+npm run tw:watch     # leave running in a second terminal next to runserver
+```
+
+- Use Tailwind classes directly in templates, for example `class="rounded-xl bg-brand px-4 py-2 text-white"`. The brand colors `brand`, `brand-dark`, `navy`, and `line` are defined in `static_src/tailwind.css`.
+- The original RentEase styles are in `static_src/legacy/`. They're in a lower CSS layer, so Tailwind classes win when both apply to the same element.
+- Before committing, run `npm run tw:build` to produce the minified `main.css`.
+
 ## Tests
 
 ```powershell
@@ -106,7 +119,9 @@ The tests cover registration validation, password hashing, login and logout, red
 │   ├── management/commands/seed_demo_users.py
 │   └── tests.py
 ├── templates/              # Base layout, auth pages, dashboards, and profile pages
-├── static/css/             # styles.css (ported from the React prototype) and app.css
+├── static_src/             # Tailwind source (tailwind.css) and original styles (legacy/)
+├── static/css/main.css     # Generated stylesheet (npm run tw:build)
+├── package.json            # Tailwind CLI scripts (build tooling only)
 ├── .env.example
 └── requirements.txt
 ```
