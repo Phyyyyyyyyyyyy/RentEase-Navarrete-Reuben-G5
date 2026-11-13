@@ -78,7 +78,7 @@
         {% for error in form.non_field_errors %}<div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{{ error }}</div>{% endfor %}
         {% include "partials/field.html" with field=form.preferred_move_in %}
         {% include "partials/field.html" with field=form.message %}
-        <button type="submit" class="cursor-pointer rounded-xl border-0 bg-brand px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50" {% if not form.fields.unit.queryset.exists %}disabled{% endif %}>Submit application</button>
+        <button type="submit" class="cursor-pointer rounded-xl border-0 bg-brand px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50" {% if not form.fields.unit.queryset.exists %}disabled{% endif %} data-loading="Submitting…">Submit application</button>
         <p class="m-0 text-center text-[11px] text-slate-400">The owner will review your application. Track it under <a href="{% url 'properties:my_applications' %}" class="font-semibold text-brand no-underline">My Applications</a>.</p>
       </div>
     </section>

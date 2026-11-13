@@ -17,7 +17,7 @@
       {{ form.type }}
       {{ form.max_rent }}
       <div class="flex gap-2">
-        <button type="submit" class="flex-1 cursor-pointer rounded-xl border-0 bg-white px-5 py-2.5 text-sm font-bold text-brand-dark transition hover:bg-blue-50">Search</button>
+        <button type="submit" class="flex-1 cursor-pointer rounded-xl border-0 bg-white px-5 py-2.5 text-sm font-bold text-brand-dark transition hover:bg-blue-50" data-loading="Searching…">Search</button>
         {% if filtered %}<a href="{% url 'properties:browse' %}" class="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white no-underline hover:bg-white/10">Clear</a>{% endif %}
       </div>
     </form>

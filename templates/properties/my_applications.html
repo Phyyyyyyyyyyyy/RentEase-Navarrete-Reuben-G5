@@ -16,9 +16,10 @@
   {# Status tabs #}
   <nav class="flex flex-wrap gap-2">
     {% for value, label, count in status_tabs %}
-      <a href="?status={{ value }}" class="rounded-full border px-3.5 py-1.5 text-xs font-semibold no-underline transition
+      <a href="?status={{ value }}" class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold no-underline transition
         {% if status == value %}border-brand bg-brand text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-blue-300{% endif %}">
         {{ label }} <span class="{% if status == value %}text-blue-100{% else %}text-slate-400{% endif %}">{{ count }}</span>
+        {% if value == "pending" and count %}{% include "partials/ping_dot.html" with label="Applications awaiting review" %}{% endif %}
       </a>
     {% endfor %}
   </nav>
@@ -48,7 +49,7 @@
         {% if app.can_withdraw %}
         <form method="post" action="{% url 'properties:withdraw' app.pk %}" class="m-0" onsubmit="return confirm('Withdraw this application?');">
           {% csrf_token %}
-          <button type="submit" class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100">Withdraw</button>
+          <button type="submit" class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100" data-loading="Withdrawing…">Withdraw</button>
         </form>
         {% endif %}
       </div>

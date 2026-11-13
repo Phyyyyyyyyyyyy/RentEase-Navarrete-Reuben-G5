@@ -26,7 +26,7 @@
       {% include "partials/field.html" with field=form.username %}
       {% include "partials/field.html" with field=form.password %}
       <input type="hidden" name="next" value="{{ next }}">
-      <button class="primary-button full" type="submit">Sign in {% icon "arrow" 18 %}</button>
+      <button class="primary-button full" type="submit" data-loading="Signing in…">Sign in {% icon "arrow" 18 %}</button>
       <p class="auth-switch">No account yet? <a href="{% url 'accounts:register' %}">Create an account</a></p>
     </form>
   </section>

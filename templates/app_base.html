@@ -2,6 +2,7 @@
 {% load rentease %}
 {% block body %}
 {% role_menu user as menu %}
+{% pending_applications user as pending_count %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
@@ -16,7 +17,7 @@
       {% for url_name, label, icon_name in menu %}
         {% if url_name %}
           {% url url_name as item_url %}
-          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span></a>
+          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span>{% if url_name == "properties:my_applications" and pending_count %}{% include "partials/ping_dot.html" with css="ml-auto" label=pending_count|stringformat:"d"|add:" pending" %}{% endif %}</a>
         {% else %}
           <span class="nav-disabled" title="Coming in a later phase">{% icon icon_name 19 %}<span>{{ label }}</span><em>Soon</em></span>
         {% endif %}
@@ -26,7 +27,7 @@
       <div class="scope-pill"><span>Phase</span><strong>Accounts</strong></div>
       <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
-        <button class="logout-button" type="submit">{% icon "logout" 19 %}Sign out</button>
+        <button class="logout-button" type="submit" data-loading="Signing out…">{% icon "logout" 19 %}Sign out</button>
       </form>
     </div>
   </aside>
@@ -41,12 +42,15 @@
       </a>
       <form method="post" action="{% url 'accounts:logout' %}" class="topbar-logout">
         {% csrf_token %}
-        <button class="secondary-button compact" type="submit">{% icon "logout" 16 %}<span>Sign out</span></button>
+        <button class="secondary-button compact" type="submit" data-loading="Signing out…">{% icon "logout" 16 %}<span>Sign out</span></button>
       </form>
     </header>
     <div class="content-area">
-      {% include "partials/messages.html" %}
-      {% block content %}{% endblock %}
+      <div id="page-content">
+        {% include "partials/messages.html" %}
+        {% block content %}{% endblock %}
+      </div>
+      {% include "partials/page_skeleton.html" %}
     </div>
   </main>
 </div>
@@ -57,6 +61,49 @@
     function toggle(open) { sidebar.classList.toggle('sidebar-open', open); overlay.hidden = !open; }
     document.getElementById('mobile-menu').addEventListener('click', function () { toggle(true); });
     overlay.addEventListener('click', function () { toggle(false); });
+  })();
+
+  /*
+   * Skeleton loader: when navigating to another page (link click or GET form
+   * such as Search) takes longer than DELAY ms, swap the content for skeleton
+   * cards until the new page arrives. Fast loads never show it.
+   */
+  (function () {
+    var DELAY = 300;
+    var content = document.getElementById('page-content');
+    var skeleton = document.getElementById('page-skeleton');
+    var timer = null;
+
+    function show() {
+      content.hidden = true;
+      skeleton.hidden = false;
+      document.querySelector('.main-area').setAttribute('aria-busy', 'true');
+    }
+    function schedule() { clearTimeout(timer); timer = setTimeout(show, DELAY); }
+    function reset() {
+      clearTimeout(timer);
+      content.hidden = false;
+      skeleton.hidden = true;
+      document.querySelector('.main-area').removeAttribute('aria-busy');
+    }
+
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('a[href]');
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (a.target && a.target !== '_self') return;
+      if (a.hasAttribute('download') || a.origin !== location.origin) return;
+      // Same-page anchors (#section) don't load anything.
+      if (a.pathname === location.pathname && a.search === location.search && a.hash) return;
+      if (a.getAttribute('href').indexOf('/django-admin') === 0) return;
+      schedule();
+    });
+
+    document.addEventListener('submit', function (e) {
+      if (!e.defaultPrevented && (e.target.method || 'get').toLowerCase() === 'get') schedule();
+    });
+
+    // Back/forward cache restores the page as it was: undo the skeleton.
+    window.addEventListener('pageshow', function (e) { if (e.persisted) reset(); });
   })();
 </script>
 {% endblock %}

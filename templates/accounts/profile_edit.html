@@ -29,7 +29,7 @@
         {% include "partials/field.html" with field=form.profile_photo %}
         <div class="form-actions">
           <a class="secondary-button" href="{% url 'accounts:profile' %}">Cancel</a>
-          <button class="primary-button" type="submit">Save changes</button>
+          <button class="primary-button" type="submit" data-loading="Saving…">Save changes</button>
         </div>
       </form>
     </section>

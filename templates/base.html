@@ -10,5 +10,41 @@
 </head>
 <body>
 {% block body %}{% endblock %}
+<script>
+  /*
+   * Loading state for submit buttons. Add data-loading="Saving…" to a submit
+   * button: on submit it is disabled (prevents double submits) and shows a
+   * spinner with that text. Skipped if the submit was cancelled (e.g. confirm()).
+   */
+  (function () {
+    var SPINNER =
+      '<svg class="size-4 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
+      '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+    var LOADING_CLASSES = ['inline-flex', 'items-center', 'justify-center', 'gap-2', 'cursor-wait', 'opacity-80'];
+
+    document.addEventListener('submit', function (e) {
+      if (e.defaultPrevented) return;
+      var btn = e.submitter || e.target.querySelector('[type=submit][data-loading]');
+      if (!btn || !btn.hasAttribute('data-loading') || btn.disabled) return;
+      btn.dataset.original = btn.innerHTML;
+      btn.innerHTML = SPINNER + '<span>' + btn.getAttribute('data-loading') + '</span>';
+      btn.classList.add.apply(btn.classList, LOADING_CLASSES);
+      btn.setAttribute('aria-busy', 'true');
+      btn.disabled = true;
+    });
+
+    // Restore buttons when the page comes back from the back/forward cache.
+    window.addEventListener('pageshow', function (e) {
+      if (!e.persisted) return;
+      document.querySelectorAll('[data-loading][aria-busy]').forEach(function (btn) {
+        btn.innerHTML = btn.dataset.original;
+        btn.classList.remove.apply(btn.classList, LOADING_CLASSES);
+        btn.removeAttribute('aria-busy');
+        btn.disabled = false;
+      });
+    });
+  })();
+</script>
 </body>
 </html>

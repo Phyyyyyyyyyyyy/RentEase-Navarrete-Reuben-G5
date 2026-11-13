@@ -77,6 +77,15 @@ def peso(value):
 
 
 @register.simple_tag
+def pending_applications(user):
+    """Number of the tenant's applications still awaiting review (0 for other roles)."""
+    if getattr(user, 'role', '') != 'tenant':
+        return 0
+    from properties.models import Application
+    return user.applications.filter(status=Application.Status.PENDING).count()
+
+
+@register.simple_tag
 def role_menu(user):
     """Sidebar items for the user's role. A None url means the module is not built yet."""
     return ROLE_MENUS.get(getattr(user, 'role', ''), [])

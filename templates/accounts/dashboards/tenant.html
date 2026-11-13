@@ -12,7 +12,7 @@
   <section class="stats-grid">
     <div class="stat-card"><div class="stat-icon">{% icon "home" %}</div><div><span>Vacant units</span><strong>{{ vacant_units }}</strong><small>available to apply for</small></div></div>
     <div class="stat-card"><div class="stat-icon">{% icon "file" %}</div><div><span>My applications</span><strong>{{ app_total }}</strong><small>submitted so far</small></div></div>
-    <div class="stat-card"><div class="stat-icon">{% icon "clock" %}</div><div><span>Pending</span><strong>{{ app_pending }}</strong><small>awaiting owner review</small></div></div>
+    <div class="stat-card relative">{% if app_pending %}{% include "partials/ping_dot.html" with css="!absolute top-3 right-3" label="Applications awaiting review" %}{% endif %}<div class="stat-icon">{% icon "clock" %}</div><div><span>Pending</span><strong>{{ app_pending }}</strong><small>awaiting owner review</small></div></div>
     <div class="stat-card"><div class="stat-icon">{% icon "check" %}</div><div><span>Approved</span><strong>{{ app_approved }}</strong><small>applications approved</small></div></div>
   </section>
 
