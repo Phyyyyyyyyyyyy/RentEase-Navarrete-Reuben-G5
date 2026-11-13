@@ -68,8 +68,8 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 ### 1. Clone and install
 
 ```powershell
-git clone https://github.com/Phyyyyyyyyyyyy/rentease-csit327.git
-cd rentease-csit327
+git clone https://github.com/Phyyyyyyyyyyyy/RentEase-Navarrete-Reuben-G5.git
+cd RentEase-Navarrete-Reuben-G5
 python -m venv venv
 .\venv\Scripts\python -m pip install -r requirements.txt
 ```
