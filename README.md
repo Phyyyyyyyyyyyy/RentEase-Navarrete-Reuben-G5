@@ -213,7 +213,9 @@ npm run tw:watch     # leave running in a second terminal next to runserver
 .\venv\Scripts\python manage.py test
 ```
 
-The 49 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), application ownership and withdrawal, and owner property/unit management and application approval.
+The 54 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), application ownership, editing, and withdrawal, and owner property/unit management and application approval.
+
+> **Note:** Django creates a temporary `test_postgres` database on Supabase. If a second run fails with *"database test_postgres is being accessed by other users"*, a pooled connection from the previous run is still open. Run `.\venv\Scripts\python manage.py test --keepdb` to reuse the test database instead.
 
 ---
 
@@ -234,7 +236,14 @@ The 49 tests cover registration validation (required fields, email format, dupli
 
 ```
 ├── config/                 # Django settings (reads .env) and root URLs
-├── properties/             # Properties, units, applications (browse + my applications)
+├── docs/                   # Project Development completion reports (PDF)
+├── properties/             # Core feature: properties, units, rental applications
+│   ├── models.py           # Property, Unit, Application
+│   ├── forms.py            # Property, unit, and application forms with validation
+│   ├── views.py            # Tenant views: browse, apply, my applications (edit, withdraw)
+│   ├── owner_views.py      # Owner views: properties, units, approve/reject
+│   ├── management/commands/seed_demo_properties.py
+│   └── tests.py
 ├── accounts/               # Account feature app
 │   ├── models.py           # Custom User: role, phone, profile_photo
 │   ├── forms.py            # Registration, login, and profile forms
@@ -244,7 +253,7 @@ The 49 tests cover registration validation (required fields, email format, dupli
 │   ├── templatetags/       # Icon and sidebar-menu template tags
 │   ├── management/commands/seed_demo_users.py
 │   └── tests.py
-├── templates/              # Base layout, auth pages, dashboards, and profile pages
+├── templates/              # Base layout, auth pages, dashboards, profile, and properties/ pages
 ├── static_src/             # Tailwind source (tailwind.css) and original styles (legacy/)
 ├── static/css/main.css     # Generated stylesheet (npm run tw:build)
 ├── package.json            # Tailwind CLI scripts (build tooling only)
