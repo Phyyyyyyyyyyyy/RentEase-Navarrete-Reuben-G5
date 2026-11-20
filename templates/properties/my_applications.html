@@ -47,6 +47,7 @@
       <div class="flex gap-2 sm:flex-col sm:items-end">
         <a href="{% url 'properties:detail' app.unit.property.pk %}" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 no-underline hover:bg-slate-50">View property</a>
         {% if app.can_withdraw %}
+        <a href="{% url 'properties:edit_application' app.pk %}" class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-brand no-underline hover:bg-blue-100">Edit</a>
         <form method="post" action="{% url 'properties:withdraw' app.pk %}" class="m-0" onsubmit="return confirm('Withdraw this application?');">
           {% csrf_token %}
           <button type="submit" class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100" data-loading="Withdrawing…">Withdraw</button>

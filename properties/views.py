@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import role_required
 from accounts.models import User
 
-from .forms import ApplicationForm, BrowseFilterForm
+from .forms import ApplicationEditForm, ApplicationForm, BrowseFilterForm
 from .models import Application, Property, Unit
 
 TENANT = User.Role.TENANT
@@ -76,6 +76,23 @@ def my_applications(request):
         'status': status,
         'status_tabs': [('', 'All', sum(counts.values()))] + [(s, label, counts[s]) for s, label in Application.Status.choices],
     })
+
+
+@role_required(TENANT)
+def edit_application(request, pk):
+    # Filtering by tenant means a tenant can only edit their own applications.
+    application = get_object_or_404(Application.objects.select_related('unit__property'), pk=pk, tenant=request.user)
+    if not application.can_withdraw:
+        messages.error(request, 'Only pending applications can be edited.')
+        return redirect('properties:my_applications')
+    form = ApplicationEditForm(request.POST or None, instance=application)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Application for {application.unit.name} updated.')
+            return redirect('properties:my_applications')
+        messages.error(request, 'Please fix the errors below.')
+    return render(request, 'properties/application_form.html', {'form': form, 'application': application})
 
 
 @role_required(TENANT)
