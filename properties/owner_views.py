@@ -43,7 +43,7 @@ def property_list(request):
 
 @role_required(OWNER)
 def property_create(request):
-    form = PropertyForm(request.POST or None)
+    form = PropertyForm(request.POST or None, owner=request.user)
     if request.method == 'POST':
         if form.is_valid():
             prop = form.save(commit=False)
@@ -67,7 +67,7 @@ def property_manage(request, pk):
 @role_required(OWNER)
 def property_edit(request, pk):
     prop = get_object_or_404(owned_properties(request.user), pk=pk)
-    form = PropertyForm(request.POST or None, instance=prop)
+    form = PropertyForm(request.POST or None, instance=prop, owner=request.user)
     if request.method == 'POST':
         if form.is_valid():
             form.save()

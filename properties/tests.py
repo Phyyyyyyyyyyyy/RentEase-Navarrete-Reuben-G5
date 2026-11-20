@@ -234,6 +234,35 @@ class OwnerPropertyTests(OwnerTestCase):
         response = self.client.get(reverse('properties:owner_property_delete', args=[self.studio.pk]))
         self.assertEqual(response.status_code, 405)
 
+    def test_duplicate_property_rejected(self):
+        response = self.client.post(reverse('properties:owner_property_create'), {
+            'name': ' lahug apartments ', 'property_type': 'apartment', 'address': 'SALINAS DR', 'city': 'cebu city'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('You already have a property with this name at this address.',
+                      response.context['form'].non_field_errors())
+        self.assertEqual(Property.objects.filter(owner=self.owner, name__iexact='Lahug Apartments').count(), 1)
+
+    def test_edit_into_duplicate_rejected(self):
+        response = self.client.post(reverse('properties:owner_property_edit', args=[self.studio.pk]), {
+            'name': 'Lahug Apartments', 'property_type': 'studio', 'address': 'Salinas Dr', 'city': 'Cebu City'})
+        self.assertEqual(response.status_code, 200)
+        self.studio.refresh_from_db()
+        self.assertEqual(self.studio.name, 'Mabolo Studios')
+
+    def test_same_property_allowed_at_other_address_or_owner(self):
+        self.client.post(reverse('properties:owner_property_create'), {
+            'name': 'Lahug Apartments', 'property_type': 'apartment', 'address': 'Gorordo Ave', 'city': 'Cebu City'})
+        self.client.force_login(self.other_owner)
+        self.client.post(reverse('properties:owner_property_create'), {
+            'name': 'Lahug Apartments', 'property_type': 'apartment', 'address': 'Salinas Dr', 'city': 'Cebu City'})
+        self.assertEqual(Property.objects.filter(name='Lahug Apartments').count(), 3)
+
+    def test_saving_unchanged_property_is_not_a_duplicate(self):
+        response = self.client.post(reverse('properties:owner_property_edit', args=[self.apt.pk]), {
+            'name': 'Lahug Apartments', 'property_type': 'apartment', 'address': 'Salinas Dr', 'city': 'Cebu City',
+            'description': 'Updated'})
+        self.assertRedirects(response, reverse('properties:owner_property', args=[self.apt.pk]))
+
 
 class OwnerUnitTests(OwnerTestCase):
     def unit_data(self, **overrides):
