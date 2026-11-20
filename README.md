@@ -260,7 +260,17 @@ The 49 tests cover registration validation (required fields, email format, dupli
 |---|---|
 | `main` | Stable code only. Updated only by Pull Requests from `develop`. |
 | `develop` | Integration branch, created from `main`. |
-| `feature/<name>` | One branch per feature, created from `develop` and merged back through a Pull Request (e.g. `feature/edit-application`, `feature/pd2-docs`). Merged feature branches are kept. |
+| `feature/<name>` | One branch per feature, created from `develop` and merged back through a Pull Request (e.g. `feature/readme-tests-docs`, `feature/pd2-report-update`). Merged feature branches are kept. |
+
+Flow: `feature/<name>` → Pull Request into `develop` → when the increment is done, Pull Request from `develop` into `main`. When opening a Pull Request on GitHub, set **base** to `develop` (GitHub defaults to `main`).
+
+| Pull Request | From → Into | Contents |
+|---|---|---|
+| [#1](https://github.com/Phyyyyyyyyyyyy/RentEase-Navarrete-Reuben-G5/pull/1) | `feature/edit-application` → `main` | Tenant edit for pending applications (opened against `main` by mistake) |
+| [#2](https://github.com/Phyyyyyyyyyyyy/RentEase-Navarrete-Reuben-G5/pull/2) | `feature/pd2-docs` → `main` | README core feature docs and PD2 report (opened against `main` by mistake) |
+| [#3](https://github.com/Phyyyyyyyyyyyy/RentEase-Navarrete-Reuben-G5/pull/3) | `feature/readme-tests-docs` → `develop` | README test and project-structure updates |
+| [#4](https://github.com/Phyyyyyyyyyyyy/RentEase-Navarrete-Reuben-G5/pull/4) | `feature/pd2-report-update` → `develop` | Corrected PD2 report and these workflow notes |
+| [#5](https://github.com/Phyyyyyyyyyyyy/RentEase-Navarrete-Reuben-G5/pull/5) | `develop` → `main` | Project Development 2 release |
 
 ---
 
