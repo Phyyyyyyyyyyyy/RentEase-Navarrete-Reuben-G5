@@ -24,7 +24,7 @@
       {% endfor %}
     </nav>
     <div class="sidebar-footer">
-      <div class="scope-pill"><span>Phase</span><strong>Accounts</strong></div>
+      <div class="scope-pill"><span>Phase</span><strong>Rentals</strong></div>
       <form method="post" action="{% url 'accounts:logout' %}">
         {% csrf_token %}
         <button class="logout-button" type="submit" data-loading="Signing out…">{% icon "logout" 19 %}Sign out</button>
