@@ -1,0 +1,32 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Edit application{% endblock %}
+{% block page_title %}My Applications{% endblock %}
+{% block content %}
+<div class="page-stack narrow-page">
+  <a href="{% url 'properties:my_applications' %}" class="w-fit text-sm font-semibold text-brand no-underline hover:underline">← Back to my applications</a>
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">{{ application.unit.property.name }} · {{ application.unit.name }}</span>
+      <h1>Edit application</h1>
+      <p>Update your move-in date or message while the owner hasn't decided yet. To apply for a different unit, withdraw this one and apply again.</p>
+    </div>
+  </div>
+  <section class="panel">
+    <form method="post" class="form-stack p-6" novalidate>
+      {% csrf_token %}
+      {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+      <div class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500">
+        <span>Rent: <strong class="text-slate-700">{{ application.unit.monthly_rent|peso }}/mo</strong></span>
+        <span>Applied: <strong class="text-slate-700">{{ application.created_at|date:"M j, Y" }}</strong></span>
+      </div>
+      {% include "partials/field.html" with field=form.preferred_move_in %}
+      {% include "partials/field.html" with field=form.message %}
+      <div class="form-actions">
+        <a class="secondary-button" href="{% url 'properties:my_applications' %}">Cancel</a>
+        <button class="primary-button" type="submit" data-loading="Saving…">Save changes</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

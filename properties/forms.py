@@ -10,7 +10,31 @@ class BrowseFilterForm(forms.Form):
     max_rent = forms.IntegerField(required=False, min_value=0, widget=forms.NumberInput(attrs={'placeholder': 'Max rent (₱)'}))
 
 
-class ApplicationForm(forms.ModelForm):
+class MoveInDateMixin:
+    def clean_preferred_move_in(self):
+        date = self.cleaned_data.get('preferred_move_in')
+        if date and date < timezone.localdate():
+            raise forms.ValidationError('Move-in date cannot be in the past.')
+        return date
+
+
+class ApplicationEditForm(MoveInDateMixin, forms.ModelForm):
+    """Lets a tenant change the move-in date and message of a pending application.
+
+    The unit can't be changed: to apply for a different unit, withdraw and apply again.
+    """
+
+    class Meta:
+        model = Application
+        fields = ('preferred_move_in', 'message')
+        widgets = {
+            'preferred_move_in': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'message': forms.Textarea(attrs={'rows': 5}),
+        }
+        labels = {'message': 'Message to the owner'}
+
+
+class ApplicationForm(MoveInDateMixin, forms.ModelForm):
     unit = forms.ModelChoiceField(queryset=Unit.objects.none(), widget=forms.RadioSelect, empty_label=None,
                                   error_messages={'required': 'Please choose a vacant unit.'})
 
@@ -27,12 +51,6 @@ class ApplicationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.tenant = tenant
         self.fields['unit'].queryset = property_obj.units.filter(status=Unit.Status.VACANT)
-
-    def clean_preferred_move_in(self):
-        date = self.cleaned_data.get('preferred_move_in')
-        if date and date < timezone.localdate():
-            raise forms.ValidationError('Move-in date cannot be in the past.')
-        return date
 
     def clean(self):
         cleaned = super().clean()

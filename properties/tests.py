@@ -128,6 +128,50 @@ class MyApplicationsTests(PropertyTestCase):
         self.assertEqual(self.client.get(reverse('properties:withdraw', args=[self.mine.pk])).status_code, 405)
 
 
+class EditApplicationTests(PropertyTestCase):
+    def setUp(self):
+        super().setUp()
+        self.mine = Application.objects.create(tenant=self.tenant, unit=self.vacant)
+        self.theirs = Application.objects.create(tenant=make_user('other', User.Role.TENANT), unit=self.vacant,
+                                                 message='SECRET-NOTE')
+
+    def edit_url(self, app):
+        return reverse('properties:edit_application', args=[app.pk])
+
+    def test_edit_own_pending(self):
+        move_in = timezone.localdate() + timedelta(days=14)
+        response = self.client.post(self.edit_url(self.mine),
+                                    {'preferred_move_in': move_in.isoformat(), 'message': 'Updated note'}, follow=True)
+        self.assertRedirects(response, reverse('properties:my_applications'))
+        self.assertContains(response, 'updated')
+        self.mine.refresh_from_db()
+        self.assertEqual((self.mine.preferred_move_in, self.mine.message), (move_in, 'Updated note'))
+
+    def test_edit_rejects_past_move_in(self):
+        past = (timezone.localdate() - timedelta(days=1)).isoformat()
+        response = self.client.post(self.edit_url(self.mine), {'preferred_move_in': past, 'message': 'x'})
+        self.assertContains(response, 'cannot be in the past')
+        self.mine.refresh_from_db()
+        self.assertIsNone(self.mine.preferred_move_in)
+
+    def test_cannot_edit_someone_elses(self):
+        response = self.client.post(self.edit_url(self.theirs), {'message': 'hacked'})
+        self.assertEqual(response.status_code, 404)
+        self.theirs.refresh_from_db()
+        self.assertEqual(self.theirs.message, 'SECRET-NOTE')
+
+    def test_only_pending_can_be_edited(self):
+        Application.objects.filter(pk=self.mine.pk).update(status='rejected')
+        response = self.client.post(self.edit_url(self.mine), {'message': 'too late'}, follow=True)
+        self.assertContains(response, 'Only pending applications can be edited')
+        self.mine.refresh_from_db()
+        self.assertEqual(self.mine.message, '')
+
+    def test_owner_cannot_open_edit_page(self):
+        self.client.force_login(self.owner)
+        self.assertRedirects(self.client.get(self.edit_url(self.mine)), reverse('accounts:dashboard_owner'))
+
+
 class OwnerTestCase(PropertyTestCase):
     """Logged in as the owner of all three properties; `other_owner` owns `theirs`."""
 
