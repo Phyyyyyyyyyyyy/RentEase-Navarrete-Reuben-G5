@@ -73,6 +73,25 @@ class PropertyForm(forms.ModelForm):
         }
         help_texts = {'amenities': 'Separate amenities with commas.'}
 
+    def __init__(self, *args, owner, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.owner = owner
+
+    def clean(self):
+        # The database constraint is case-insensitive; check here too for a friendly error.
+        cleaned = super().clean()
+        for field in ('name', 'address', 'city'):
+            if cleaned.get(field):
+                cleaned[field] = cleaned[field].strip()
+        name, address, city = cleaned.get('name'), cleaned.get('address'), cleaned.get('city')
+        if name and address and city:
+            clash = (Property.objects.filter(owner=self.owner, name__iexact=name, address__iexact=address,
+                                             city__iexact=city)
+                     .exclude(pk=self.instance.pk))
+            if clash.exists():
+                raise forms.ValidationError('You already have a property with this name at this address.')
+        return cleaned
+
 
 class UnitForm(forms.ModelForm):
     class Meta:

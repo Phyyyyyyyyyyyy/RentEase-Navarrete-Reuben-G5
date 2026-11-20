@@ -28,7 +28,7 @@ RentEase exists to match vacant rental units with tenants. The core feature cove
 |---|---|
 | **Vertical slice** | `Property`, `Unit`, and `Application` models (PostgreSQL on Supabase), Django views/forms/URLs in `properties/`, and templates in `templates/properties/`. |
 | **CRUD** | Owners: create, view, edit, delete properties and units. Tenants: create, view, edit, and withdraw applications. Owners update application status (approve/reject). |
-| **Validation** | Required fields, rent above zero, unique unit names per property, no past move-in dates, only vacant units, one pending application per tenant per unit, only pending applications can be edited, withdrawn, or decided. Success and error messages on every action. |
+| **Validation** | Required fields, rent above zero, no duplicate properties (same owner, name, address, and city), unique unit names per property, no past move-in dates, only vacant units, one pending application per tenant per unit, only pending applications can be edited, withdrawn, or decided. Success and error messages on every action. |
 | **Linked to the user** | `Property.owner` and `Application.tenant` are ForeignKeys to `User`. Every query is filtered by the logged-in user, so other users' records return 404. |
 | **Role-based access** | `@role_required` limits owner pages to Property Owners and tenant pages to Tenants. Each dashboard links to its role's pages. Admins manage all records in the Django admin. |
 | **Relationships** | `User 1─* Property 1─* Unit 1─* Application *─1 User` |
@@ -59,7 +59,7 @@ RentEase exists to match vacant rental units with tenants. The core feature cove
 
 | Feature | Details |
 |---|---|
-| **My Properties** | Lists only the owner's own properties, with unit, vacant, and pending-application counts. Owners can add, edit, and delete properties. |
+| **My Properties** | Lists only the owner's own properties, with unit, vacant, and pending-application counts. Owners can add, edit, and delete properties. An owner can't list the same property twice (same name, address, and city, ignoring case). |
 | **Units** | On each property's page, owners add, edit, and delete units (name, bedrooms, bathrooms, floor area, rent, Vacant/Occupied). Unit names must be unique within a property, and rent must be above zero. |
 | **Applications** | Lists applications for the owner's units, with status tabs (Pending first). Pending applications can be approved or rejected. Approving marks the unit Occupied and rejects the other pending applications for that unit. A unit that's already occupied can't be approved. |
 | **Ownership** | Every owner query is filtered by the logged-in owner, so another owner's properties, units, and applications return 404. |

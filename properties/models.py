@@ -3,6 +3,7 @@ import builtins
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Lower
 
 
 class Property(models.Model):
@@ -29,6 +30,12 @@ class Property(models.Model):
     class Meta:
         verbose_name_plural = 'properties'
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(
+                'owner', Lower('name'), Lower('address'), Lower('city'),
+                name='unique_property_per_owner_address',
+            ),
+        ]
 
     def __str__(self):
         return self.name
