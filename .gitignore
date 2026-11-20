@@ -1,5 +1,7 @@
-# Secrets
+# Secrets (only .env.example, with placeholders, is committed)
 .env
+.env.*
+!.env.example
 
 # Python
 venv/

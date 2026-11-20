@@ -9,8 +9,29 @@ RentEase connects **property owners**, **tenants**, **staff**, and **administrat
 | Styling | **Tailwind CSS v4** plus the original RentEase stylesheet |
 | Authentication | Django's built-in auth (hashed passwords, sessions) |
 
-> **Current phase: Project Development 1 (Account Feature).**
-> Property, application, lease, and maintenance modules come in later phases. They appear as "Soon" in the sidebar.
+> **Current phase: Project Development 2 – Core Feature (Vertical Slice).**
+> Lease, payment, and maintenance modules come in later phases. They appear as "Soon" in the sidebar.
+> The PD2 completion report is in [`docs/`](docs/).
+
+---
+
+## Core Feature: Property Listing & Rental Applications
+
+RentEase exists to match vacant rental units with tenants. The core feature covers that whole flow, end to end:
+
+1. A **Property Owner** lists a property and adds its units (rent, size, Vacant/Occupied).
+2. A **Tenant** browses properties with vacant units, opens one, and applies for a unit.
+3. The tenant tracks the application in **My Applications** and can **edit** or **withdraw** it while it's pending.
+4. The owner **approves** or **rejects** it. Approving marks the unit Occupied and rejects the other pending applications for that unit.
+
+| Requirement | How it's done |
+|---|---|
+| **Vertical slice** | `Property`, `Unit`, and `Application` models (PostgreSQL on Supabase), Django views/forms/URLs in `properties/`, and templates in `templates/properties/`. |
+| **CRUD** | Owners: create, view, edit, delete properties and units. Tenants: create, view, edit, and withdraw applications. Owners update application status (approve/reject). |
+| **Validation** | Required fields, rent above zero, unique unit names per property, no past move-in dates, only vacant units, one pending application per tenant per unit, only pending applications can be edited, withdrawn, or decided. Success and error messages on every action. |
+| **Linked to the user** | `Property.owner` and `Application.tenant` are ForeignKeys to `User`. Every query is filtered by the logged-in user, so other users' records return 404. |
+| **Role-based access** | `@role_required` limits owner pages to Property Owners and tenant pages to Tenants. Each dashboard links to its role's pages. Admins manage all records in the Django admin. |
+| **Relationships** | `User 1─* Property 1─* Unit 1─* Application *─1 User` |
 
 ---
 
@@ -32,7 +53,7 @@ RentEase connects **property owners**, **tenants**, **staff**, and **administrat
 | **Browse** | Lists only properties that have at least one vacant unit, with a "starts at" rent and a vacant-unit count. Tenants can search by name, address, or city, and filter by property type and maximum monthly rent. |
 | **Property details** | Shows the description, amenities, owner contact, and every unit (bedrooms, bathrooms, floor area, rent, Vacant/Occupied). |
 | **Apply** | The tenant picks a vacant unit, an optional move-in date, and a message for the owner. Occupied units, units from another property, past move-in dates, and a second pending application for the same unit are all rejected. A database constraint also enforces one pending application per tenant per unit. |
-| **My Applications** | Shows only the logged-in tenant's applications, with status tabs (Pending, Approved, Rejected, Withdrawn). Pending applications can be withdrawn. A tenant can't see or withdraw anyone else's. |
+| **My Applications** | Shows only the logged-in tenant's applications, with status tabs (Pending, Approved, Rejected, Withdrawn). Pending applications can be edited (move-in date and message) or withdrawn. A tenant can't see, edit, or withdraw anyone else's. |
 
 ## My Properties & Applications (Property Owner)
 
@@ -63,6 +84,7 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 | `/browse/` | Tenant | Search properties with vacant units; filter by type and maximum rent |
 | `/browse/<id>/` | Tenant | Property details and units; apply for a vacant unit |
 | `/applications/` | Tenant | Your applications, filterable by status; withdraw pending ones |
+| `/applications/<id>/edit/` | Tenant | Edit the move-in date and message of a pending application |
 | `/owner/properties/` | Property Owner | Your properties; add, edit, delete |
 | `/owner/properties/<id>/` | Property Owner | Manage a property's units |
 | `/owner/applications/` | Property Owner | Approve or reject applications for your units |
@@ -232,10 +254,21 @@ The 49 tests cover registration validation (required fields, email format, dupli
 
 ---
 
+## Git Workflow
+
+| Branch | Purpose |
+|---|---|
+| `main` | Stable code only. Updated only by Pull Requests from `develop`. |
+| `develop` | Integration branch, created from `main`. |
+| `feature/<name>` | One branch per feature, created from `develop` and merged back through a Pull Request (e.g. `feature/edit-application`, `feature/pd2-docs`). Merged feature branches are kept. |
+
+---
+
 ## Roadmap
 
 - [x] **Project Development 1:** Account Feature (registration, login and logout, role dashboards, profile)
-- [x] Tenant: browse properties and apply, My Applications
-- [ ] Owner: property and unit management, application review
+- [x] **Project Development 2:** Core Feature — property listing and rental applications
+  - [x] Tenant: browse properties and apply, My Applications (edit, withdraw)
+  - [x] Owner: property and unit management, application review
 - [ ] Lease and payment management
 - [ ] Tenant portal and maintenance
