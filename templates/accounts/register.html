@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Create account{% endblock %}
 {% block body %}
 <div class="auth-layout">
   <section class="auth-visual register-visual">
     <div class="auth-visual-inner">
-      <div class="auth-logo"><span>R</span>RentEase</div>
+      <img class="auth-logo" src="{% static 'img/brand/rentease-logo-white.svg' %}" alt="RentEase" width="163" height="40">
       <div class="auth-copy">
         <span class="eyebrow light">Account registration</span>
         <h1>Start with the portal that matches your rental role.</h1>

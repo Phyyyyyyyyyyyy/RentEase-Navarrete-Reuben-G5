@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{# RentEase branding for the Django admin (Users & Access). #}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | RentEase admin{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/brand/favicon.svg' %}">
+{% endblock %}
+
+{% block branding %}
+  <div id="site-name">
+    <a href="{% url 'admin:index' %}" style="display:inline-flex;align-items:center;gap:10px">
+      <img src="{% static 'img/brand/rentease-logo-white.svg' %}" alt="RentEase" width="122" height="30" style="display:block;height:30px;width:auto">
+      <span style="font-size:13px;opacity:.75">Admin</span>
+    </a>
+  </div>
+  {% if user.is_anonymous %}{% include "admin/color_theme_toggle.html" %}{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
