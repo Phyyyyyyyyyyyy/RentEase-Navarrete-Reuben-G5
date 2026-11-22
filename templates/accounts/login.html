@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load rentease %}
+{% load rentease static %}
 {% block title %}Sign in{% endblock %}
 {% block body %}
 <div class="auth-layout">
   <section class="auth-visual">
     <div class="auth-visual-inner">
-      <div class="auth-logo"><span>R</span>RentEase</div>
+      <img class="auth-logo" src="{% static 'img/brand/rentease-logo-white.svg' %}" alt="RentEase" width="163" height="40">
       <div class="auth-copy">
         <span class="eyebrow light">Streamlined rental management</span>
         <h1>Manage access, properties, and rental units in one place.</h1>

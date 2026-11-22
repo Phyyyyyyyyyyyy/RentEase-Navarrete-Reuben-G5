@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load rentease %}
+{% load rentease static %}
 {% block body %}
 {% role_menu user as menu %}
 {% pending_applications user as pending_count %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="brand-mark">R</div>
+      <img class="brand-mark" src="{% static 'img/brand/rentease-app-icon.svg' %}" alt="" width="36" height="36">
       <div><strong>RentEase</strong><span>Property Management</span></div>
     </div>
     <div class="role-panel">
@@ -35,6 +35,7 @@
   <main class="main-area">
     <header class="topbar">
       <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Open menu">{% icon "menu" %}</button>
+      <img class="topbar-mark" src="{% static 'img/brand/rentease-mark.svg' %}" alt="" width="28" height="28">
       <div class="topbar-title"><span>RentEase</span><strong>{% block page_title %}Dashboard{% endblock %}</strong></div>
       <a class="topbar-user" href="{% url 'accounts:profile' %}">
         {% include "partials/avatar.html" with u=user css="avatar avatar-small" %}
