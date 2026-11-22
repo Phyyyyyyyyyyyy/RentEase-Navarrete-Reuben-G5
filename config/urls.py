@@ -7,6 +7,7 @@ urlpatterns = [
     path('django-admin/', admin.site.urls),
     path('', include('accounts.urls')),
     path('', include('properties.urls')),
+    path('', include('payments.urls')),
 ]
 
 if settings.DEBUG:

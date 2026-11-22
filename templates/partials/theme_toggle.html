@@ -1,0 +1,7 @@
+{% load rentease %}
+{# Cycles System -> Light -> Dark. base.html wires up [data-theme-toggle]; CSS shows the icon for the current choice. #}
+<button type="button" class="icon-button theme-toggle {{ css }}" data-theme-toggle aria-label="Theme: match device" title="Theme: match device">
+  <span data-theme-icon="system">{% icon "monitor" 18 %}</span>
+  <span data-theme-icon="light">{% icon "sun" 18 %}</span>
+  <span data-theme-icon="dark">{% icon "moon" 18 %}</span>
+</button>

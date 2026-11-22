@@ -1,4 +1,8 @@
+import os
+
 from django import template
+from django.contrib.staticfiles import finders
+from django.templatetags.static import static
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -20,6 +24,12 @@ ICONS = {
     'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
     'key': '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M15 8l2 2M17 6l2 2"/>',
     'chevron': '<path d="m9 18 6-6-6-6"/>',
+    'wallet': '<path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M21 9h-5a3 3 0 0 0 0 6h5z"/><circle cx="16" cy="12" r=".6"/>',
+    'phone': '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+    'cash': '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10v4M18 10v4"/>',
+    'sun': '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
+    'moon': '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    'monitor': '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
 }
 
 
@@ -45,12 +55,14 @@ ROLE_MENUS = {
         ('accounts:dashboard_owner', 'Dashboard', 'home'),
         ('properties:owner_properties', 'My Properties', 'building'),
         ('properties:owner_applications', 'Applications', 'file'),
+        ('payments:owner', 'Rent Payments', 'wallet'),
         ('accounts:profile', 'My Profile', 'user'),
     ],
     'tenant': [
         ('accounts:dashboard_tenant', 'Dashboard', 'home'),
         ('properties:browse', 'Browse Properties', 'search'),
         ('properties:my_applications', 'My Applications', 'file'),
+        ('payments:tenant', 'Rent & Payments', 'wallet'),
         ('accounts:profile', 'My Profile', 'user'),
     ],
     'staff': [
@@ -62,6 +74,15 @@ ROLE_MENUS = {
 }
 
 
+@register.simple_tag
+def versioned_static(path):
+    """Static URL with the file's modified time appended (?v=...), so browsers fetch
+    the new file after every rebuild instead of reusing a stale cached copy."""
+    url = static(path)
+    found = finders.find(path)
+    return f'{url}?v={int(os.path.getmtime(found))}' if found else url
+
+
 @register.filter
 def startswith(value, prefix):
     return bool(prefix) and str(value).startswith(str(prefix))
@@ -71,9 +92,20 @@ def startswith(value, prefix):
 def peso(value):
     """Format a number as Philippine pesos, e.g. 12000 -> ₱12,000."""
     try:
-        return f'₱{float(value):,.0f}'
+        number = float(value)
     except (TypeError, ValueError):
         return '—'
+    # Whole amounts stay short (₱8,500); partial payments keep their centavos (₱1,250.50).
+    return f'₱{number:,.0f}' if number == int(number) else f'₱{number:,.2f}'
+
+
+@register.simple_tag
+def pending_payments(user):
+    """GCash payments waiting for the owner to confirm them."""
+    if getattr(user, 'role', '') != 'owner':
+        return 0
+    from payments.models import Payment
+    return Payment.objects.filter(tenancy__unit__property__owner=user, status=Payment.Status.PENDING).count()
 
 
 @register.simple_tag

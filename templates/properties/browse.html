@@ -8,9 +8,9 @@
   {# Search & filters #}
   <section class="grid gap-5 rounded-2xl bg-gradient-to-br from-navy to-brand-dark p-6 text-white shadow-lg shadow-blue-900/10 sm:p-7">
     <div>
-      <span class="text-[11px] font-extrabold uppercase tracking-widest text-blue-200">Find your next home</span>
+      <span class="text-[11px] font-extrabold uppercase tracking-widest text-white/70">Find your next home</span>
       <h1 class="m-0 mt-1 text-2xl font-bold tracking-tight">Browse available properties</h1>
-      <p class="m-0 mt-1 text-sm text-blue-100/80">Only properties with at least one vacant unit are shown.</p>
+      <p class="m-0 mt-1 text-sm text-white/75">Only properties with at least one vacant unit are shown.</p>
     </div>
     <form method="get" class="grid gap-2.5 md:grid-cols-[1fr_190px_170px_auto]">
       {{ form.q }}
@@ -21,7 +21,7 @@
         {% if filtered %}<a href="{% url 'properties:browse' %}" class="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white no-underline hover:bg-white/10">Clear</a>{% endif %}
       </div>
     </form>
-    {% if form.errors %}<p class="m-0 text-xs text-red-200">Enter a valid maximum rent (a whole number).</p>{% endif %}
+    {% if form.errors %}<p class="m-0 text-xs text-red-300">Enter a valid maximum rent (a whole number).</p>{% endif %}
   </section>
 
   <div class="flex items-end justify-between">

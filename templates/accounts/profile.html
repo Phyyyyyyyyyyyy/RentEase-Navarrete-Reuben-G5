@@ -26,6 +26,9 @@
         <dt>Username</dt><dd>{{ profile_user.username }}</dd>
         <dt>Email address</dt><dd>{{ profile_user.email }}</dd>
         <dt>Contact number</dt><dd>{{ profile_user.phone|default:"—" }}</dd>
+        {% if profile_user.role == "owner" %}
+        <dt>GCash</dt><dd>{% if profile_user.gcash_number %}{{ profile_user.gcash_number }} · {{ profile_user.gcash_name }}{% if profile_user.gcash_qr %} · QR uploaded{% endif %}{% else %}Not set up. <a href="{% url 'accounts:profile_edit' %}#gcash" class="font-semibold text-brand">Add GCash</a> so tenants can pay you online{% endif %}</dd>
+        {% endif %}
         <dt>Member since</dt><dd>{{ profile_user.date_joined|date:"F j, Y" }}</dd>
         <dt>Last login</dt><dd>{{ profile_user.last_login|date:"F j, Y g:i A"|default:"—" }}</dd>
       </dl>

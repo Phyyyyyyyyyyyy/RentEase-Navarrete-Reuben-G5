@@ -178,7 +178,8 @@ def application_decide(request, pk, decision):
             messages.error(request, f'{unit.name} is already occupied. Mark it vacant first, or reject this application.')
             return back
         application.status = Application.Status.APPROVED
-        application.save(update_fields=['status', 'updated_at'])
+        application.approved_at = timezone.now()
+        application.save(update_fields=['status', 'approved_at', 'updated_at'])
         unit.status = Unit.Status.OCCUPIED
         unit.save(update_fields=['status'])
         # The unit is taken now, so every other pending application for it is rejected.

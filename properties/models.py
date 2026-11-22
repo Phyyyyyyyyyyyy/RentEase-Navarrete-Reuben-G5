@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Lower
+from django.utils import timezone
 
 
 class Property(models.Model):
@@ -89,6 +90,8 @@ class Application(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # When the owner approved it, i.e. when the tenancy began (rent billing starts that month).
+    approved_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -102,6 +105,14 @@ class Application(models.Model):
 
     def __str__(self):
         return f'{self.tenant} → {self.unit} ({self.get_status_display()})'
+
+    @property
+    def tenancy_start(self):
+        """First day the tenant is renting: the preferred move-in date, but never before approval."""
+        if self.approved_at is None:
+            return None
+        approved = timezone.localdate(self.approved_at)
+        return max(self.preferred_move_in, approved) if self.preferred_move_in else approved
 
     @property
     def can_withdraw(self):

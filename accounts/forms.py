@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import User
+from .models import User, gcash_number_validator
 
 
 class RegistrationForm(UserCreationForm):
@@ -53,8 +53,38 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'phone', 'profile_photo')
-        widgets = {'profile_photo': forms.ClearableFileInput()}
+        fields = ('first_name', 'last_name', 'email', 'phone', 'profile_photo', 'gcash_name', 'gcash_number', 'gcash_qr')
+        widgets = {
+            'profile_photo': forms.ClearableFileInput(),
+            'gcash_number': forms.TextInput(attrs={'inputmode': 'numeric', 'placeholder': '09171234567'}),
+            'gcash_qr': forms.ClearableFileInput(),
+        }
+
+    GCASH_FIELDS = ('gcash_name', 'gcash_number', 'gcash_qr')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only property owners receive rent, so only they set GCash details.
+        if self.instance.role != User.Role.OWNER:
+            for name in self.GCASH_FIELDS:
+                del self.fields[name]
+        else:
+            # Accept "0917 123 4567" or "0917-123-4567": validate after removing spaces and dashes.
+            number = self.fields['gcash_number']
+            number.validators = []
+            number.max_length = number.widget.attrs['maxlength'] = 15
+
+    def clean_gcash_number(self):
+        number = self.cleaned_data['gcash_number'].replace(' ', '').replace('-', '')
+        if number:
+            gcash_number_validator(number)
+        return number
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('gcash_number') and not (cleaned.get('gcash_name') or '').strip():
+            self.add_error('gcash_name', 'Enter the name on your GCash account so tenants can check they are paying you.')
+        return cleaned
 
     def clean_email(self):
         email = self.cleaned_data['email'].strip().lower()

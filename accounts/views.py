@@ -76,8 +76,12 @@ def dashboard_owner(request):
     from properties.models import Application, Unit
 
     units = Unit.objects.filter(property__owner=request.user)
+    from payments.models import Payment
+
     pending = Application.objects.filter(unit__property__owner=request.user, status=Application.Status.PENDING)
     return render(request, 'accounts/dashboards/owner.html', {
+        'payments_to_confirm': Payment.objects.filter(tenancy__unit__property__owner=request.user,
+                                                      status=Payment.Status.PENDING).count(),
         'property_count': request.user.properties.count(),
         'unit_count': units.count(),
         'vacant_units': units.filter(status=Unit.Status.VACANT).count(),
@@ -90,8 +94,11 @@ def dashboard_owner(request):
 def dashboard_tenant(request):
     from properties.models import Application, Unit
 
+    from payments.billing import ledgers_for, tenancies_for
+
     apps = request.user.applications
     return render(request, 'accounts/dashboards/tenant.html', {
+        'rent_ledgers': [l for l in ledgers_for(tenancies_for(tenant=request.user)) if l.active or l.balance],
         'vacant_units': Unit.objects.filter(status=Unit.Status.VACANT).count(),
         'app_total': apps.count(),
         'app_pending': apps.filter(status=Application.Status.PENDING).count(),

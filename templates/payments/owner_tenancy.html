@@ -1,0 +1,115 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Tenant rent{% endblock %}
+{% block page_title %}Rent Payments{% endblock %}
+{% block content %}
+{% with t=ledger.tenancy %}
+<div class="grid gap-6">
+  <a href="{% url 'payments:owner' %}" class="w-fit text-sm font-semibold text-brand no-underline hover:underline">← Rent payments</a>
+  <div class="flex flex-wrap items-center gap-4">
+    {% include "partials/avatar.html" with u=t.tenant css="avatar" %}
+    <div class="min-w-0">
+      <span class="text-[11px] font-extrabold uppercase tracking-widest text-brand">{{ t.unit.property.name }} · {{ t.unit.name }}</span>
+      <h1 class="m-0 mt-0.5 text-2xl font-bold tracking-tight text-slate-900">{{ t.tenant.get_full_name|default:t.tenant.username }}</h1>
+      <p class="m-0 mt-0.5 text-sm text-slate-500">{{ t.unit.monthly_rent|peso }}/month · renting since {{ t.tenancy_start|date:"M j, Y" }}{% if t.tenant.phone %} · {{ t.tenant.phone }}{% endif %}{% if not ledger.active %} · <strong>tenancy ended</strong>{% endif %}</p>
+    </div>
+  </div>
+
+  <div class="grid gap-3 sm:grid-cols-3">
+    <div class="rounded-xl {% if ledger.overdue %}bg-red-50{% elif ledger.balance %}bg-amber-50{% else %}bg-emerald-50{% endif %} p-4">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Balance due</span>
+      <strong class="mt-1 block text-2xl font-bold text-slate-900">{{ ledger.balance|peso }}</strong>
+      <small class="text-xs text-slate-500">{% if ledger.overdue %}{{ ledger.overdue|peso }} overdue{% elif ledger.balance %}due by month end{% else %}paid up{% endif %}</small>
+    </div>
+    <div class="rounded-xl bg-slate-50 p-4">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total received</span>
+      <strong class="mt-1 block text-2xl font-bold text-slate-900">{{ ledger.total_paid|peso }}</strong>
+      <small class="text-xs text-slate-500">of {{ ledger.total_charged|peso }} billed so far</small>
+    </div>
+    <div class="rounded-xl bg-slate-50 p-4">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Advance credit</span>
+      <strong class="mt-1 block text-2xl font-bold text-slate-900">{{ ledger.credit|peso }}</strong>
+      <small class="text-xs text-slate-500">{% if ledger.months_covered %}covers about {{ ledger.months_covered }} more month{{ ledger.months_covered|pluralize }}{% else %}nothing paid ahead{% endif %}</small>
+    </div>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+    <section class="grid content-start gap-3 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+      <h2 class="m-0 text-base font-bold text-slate-900">Monthly rent</h2>
+      <p class="m-0 -mt-1 text-xs text-slate-500">Payments are applied to the oldest unpaid month first. “Mark paid” fills in the amount that settles everything up to that month.</p>
+      {% include "payments/_months.html" with ledger=ledger owner=True %}
+    </section>
+
+    <section id="record" class="grid content-start gap-3 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+      <h2 class="m-0 flex items-center gap-2 text-base font-bold text-slate-900">{% icon "cash" 20 %}Record a payment</h2>
+      <p class="m-0 -mt-1 text-xs text-slate-500">For rent paid in person, upfront, or any way outside the app. It counts right away. Enter the full balance to mark it paid, or the amount the tenant actually gave. Anything over the balance is credited to future months.</p>
+      <form method="post" class="form-stack" novalidate>
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+        <div class="form-grid two">
+          {% include "partials/field.html" with field=form.amount %}
+          {% include "partials/field.html" with field=form.method %}
+        </div>
+        <div class="form-grid two">
+          {% include "partials/field.html" with field=form.paid_on %}
+          {% include "partials/field.html" with field=form.reference_number %}
+        </div>
+        {% include "partials/field.html" with field=form.note %}
+        {% if ledger.balance %}<p class="m-0 text-xs text-slate-500">Balance is <button type="button" class="cursor-pointer border-0 bg-transparent p-0 text-xs font-bold text-brand underline" data-fill="{{ ledger.balance|stringformat:'.2f' }}">{{ ledger.balance|peso }}</button>. Tap to fill it in.</p>{% endif %}
+        <div class="form-actions">
+          <button class="primary-button" type="submit" data-loading="Recording…">Record payment</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <section class="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="m-0 text-base font-bold text-slate-900">Payment history</h2>
+    {% if history %}
+    <ul class="m-0 mt-3 grid list-none gap-0 p-0">
+      {% for p in history %}
+      <li class="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line py-3 last:border-0">
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <strong class="text-sm text-slate-900">{{ p.amount|peso }}</strong>
+            <span class="text-xs text-slate-500">{{ p.get_method_display }}{% if p.reference_number %} · Ref {{ p.reference_number }}{% endif %}</span>
+            {% include "payments/_payment_status.html" %}
+          </div>
+          <p class="m-0 mt-0.5 text-xs text-slate-400">{{ p.paid_on|date:"M j, Y" }} · {% if p.recorded_by_owner %}recorded by you{% else %}submitted by tenant{% endif %}{% if p.note %} · “{{ p.note }}”{% endif %}{% if p.proof %} · <a href="{{ p.proof.url }}" target="_blank" rel="noopener" class="font-semibold text-brand">View receipt</a>{% endif %}</p>
+          {% if p.status == "rejected" and p.owner_note %}<p class="m-0 mt-1 text-xs text-slate-500">{{ p.owner_note }}</p>{% endif %}
+        </div>
+        {% if p.status == "pending" %}
+        <div class="flex gap-2">
+          <form method="post" action="{% url 'payments:owner_review' p.pk 'confirm' %}" class="m-0" onsubmit="return confirm('Confirm you received this payment?');">
+            {% csrf_token %}<input type="hidden" name="next" value="tenancy">
+            <button type="submit" class="cursor-pointer rounded-lg border-0 bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700" data-loading="Confirming…">Confirm</button>
+          </form>
+          <form method="post" action="{% url 'payments:owner_review' p.pk 'reject' %}" class="m-0" onsubmit="return confirm('Reject this payment?');">
+            {% csrf_token %}<input type="hidden" name="next" value="tenancy">
+            <button type="submit" class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100" data-loading="Rejecting…">Reject</button>
+          </form>
+        </div>
+        {% elif p.status == "confirmed" %}
+        <form method="post" action="{% url 'payments:owner_review' p.pk 'void' %}" class="m-0" onsubmit="return confirm('Void this {{ p.amount|peso|escapejs }} payment? Use this only to fix a mistake. It will stop counting toward the balance.');">
+          {% csrf_token %}<input type="hidden" name="next" value="tenancy">
+          <button type="submit" class="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-50" data-loading="Voiding…">Void</button>
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="m-0 mt-2 text-sm text-slate-400">No payments yet.</p>
+    {% endif %}
+  </section>
+</div>
+{% endwith %}
+<script>
+  document.querySelectorAll('[data-fill]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById('id_amount');
+      input.value = btn.dataset.fill; input.focus();
+    });
+  });
+</script>
+{% endblock %}

@@ -66,6 +66,20 @@ RentEase exists to match vacant rental units with tenants. The core feature cove
 
 Admins can also manage properties, units, and applications in the Django admin.
 
+## Rent Payments (GCash and In Person)
+
+| Feature | Details |
+|---|---|
+| **Monthly rent** | Once an application is approved, the tenant is billed the unit's rent every month while the unit is occupied. Billing starts in the month of the move-in date (never before approval), and each month's rent is **due on the last day of the month**. Unpaid months show as Overdue after the due date. Bills are created automatically when a payments page or dashboard opens, so no scheduled job is needed. |
+| **Owner GCash details** | Owners add their GCash number (`09XXXXXXXXX`), account name, and optionally their GCash QR code on **Edit profile**. |
+| **Pay with GCash (tenant)** | The tenant sees the owner's GCash number, name, and QR code, sends the money in the GCash app, then submits the amount, date, the 13-digit reference number, and optionally a receipt screenshot. A reference number can't be submitted twice. The payment counts only after the owner confirms it. Tenants can cancel a submission while it's pending. |
+| **Confirm GCash (owner)** | **Rent Payments** lists GCash payments waiting for confirmation (with a sidebar badge). The owner checks each one against their GCash history, then confirms it or rejects it with a reason. |
+| **In person or upfront (owner)** | On a tenant's payment page the owner records money received in cash, by bank transfer, or another way. It counts immediately. The amount starts at the full balance ("mark as paid"), and the owner can change it to whatever the tenant actually paid. Each month also has a **Mark paid** shortcut. A mistaken entry can be voided. |
+| **Balance** | Confirmed payments are applied to the oldest unpaid month first, so partial payments work. Anything paid beyond the balance (paying upfront) is shown as advance credit and covers the following months. |
+| **Ownership** | Tenants see only their own rent and payments; owners only their own tenants'. Anyone else gets a 404. |
+
+> RentEase doesn't move money itself. GCash has no public API for sending to a personal GCash number, so tenants pay the owner directly in the GCash app and the owner confirms the reference number.
+
 Public registration offers only **Tenant** and **Property Owner**. **Admin** and **Staff** accounts are created by an admin from **Users & Access** (the Django admin).
 
 ### Pages
@@ -88,6 +102,10 @@ Public registration offers only **Tenant** and **Property Owner**. **Admin** and
 | `/owner/properties/` | Property Owner | Your properties; add, edit, delete |
 | `/owner/properties/<id>/` | Property Owner | Manage a property's units |
 | `/owner/applications/` | Property Owner | Approve or reject applications for your units |
+| `/payments/` | Tenant | Monthly rent, balance, and payment history |
+| `/payments/<id>/gcash/` | Tenant | Pay rent to the owner's GCash and submit the reference number |
+| `/owner/payments/` | Property Owner | Confirm GCash payments; every tenant's balance |
+| `/owner/payments/tenancy/<id>/` | Property Owner | A tenant's months and history; record in-person or upfront payments |
 | `/django-admin/` | Admin | Manage users, roles, and active status |
 
 ---
@@ -205,6 +223,13 @@ npm run tw:watch     # leave running in a second terminal next to runserver
 - Example component: `templates/accounts/dashboards/_account_panel.html` is built entirely with Tailwind.
 - Before committing, run `npm run tw:build` to produce the minified `main.css`. Don't edit `main.css` by hand.
 
+### Light and dark mode
+
+- The theme button in the top bar (and on the sign-in and register pages) switches between **match device**, **light**, and **dark**. The default, match device, follows the operating system setting and updates live when it changes. The choice is saved in the browser.
+- A small script at the top of `templates/base.html` sets `<html data-theme="light|dark">` before the page renders, so the wrong theme never flashes.
+- Templates don't need `dark:` classes. In dark mode `static_src/tailwind.css` swaps the palette: the slate scale is inverted and the pale tints (50–300) become deep tints. Legacy components get dark overrides in `static_src/legacy/dark.css`.
+- If you use a new colored text class such as `text-violet-700`, add a lighter dark-mode color for it in the `@layer utilities` block of `tailwind.css`. If you use a new pale tint such as `bg-violet-50`, add its variable to the dark palette there.
+
 ---
 
 ## Tests
@@ -213,7 +238,7 @@ npm run tw:watch     # leave running in a second terminal next to runserver
 .\venv\Scripts\python manage.py test
 ```
 
-The 54 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), application ownership, editing, and withdrawal, and owner property/unit management and application approval.
+The 87 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), application ownership, editing, and withdrawal, owner property/unit management and application approval, and rent payments (month-end due dates, oldest-month-first allocation, partial and upfront payments, GCash reference validation, owner confirm/reject/void, in-person recording, and payment ownership).
 
 > **Note:** Django creates a temporary `test_postgres` database on Supabase. If a second run fails with *"database test_postgres is being accessed by other users"*, a pooled connection from the previous run is still open. Run `.\venv\Scripts\python manage.py test --keepdb` to reuse the test database instead.
 
@@ -244,8 +269,14 @@ The 54 tests cover registration validation (required fields, email format, dupli
 │   ├── owner_views.py      # Owner views: properties, units, approve/reject
 │   ├── management/commands/seed_demo_properties.py
 │   └── tests.py
+├── payments/               # Rent payments
+│   ├── models.py           # RentCharge (monthly bill), Payment (GCash, cash, bank, other)
+│   ├── billing.py          # Monthly bill creation and balance calculation
+│   ├── forms.py            # GCash submission and owner record-payment forms
+│   ├── views.py            # Tenant and owner payment pages
+│   └── tests.py
 ├── accounts/               # Account feature app
-│   ├── models.py           # Custom User: role, phone, profile_photo
+│   ├── models.py           # Custom User: role, phone, profile_photo, owner GCash details
 │   ├── forms.py            # Registration, login, and profile forms
 │   ├── views.py            # Auth, role dashboards, and profile views
 │   ├── decorators.py       # @role_required
@@ -289,5 +320,6 @@ Flow: `feature/<name>` → Pull Request into `develop` → when the increment is
 - [x] **Project Development 2:** Core Feature — property listing and rental applications
   - [x] Tenant: browse properties and apply, My Applications (edit, withdraw)
   - [x] Owner: property and unit management, application review
-- [ ] Lease and payment management
+- [x] Rent payments: monthly billing, GCash payments to the owner, in-person and upfront payments
+- [ ] Lease management
 - [ ] Tenant portal and maintenance

@@ -1,0 +1,107 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Rent payments{% endblock %}
+{% block page_title %}Rent Payments{% endblock %}
+{% block content %}
+<div class="grid gap-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <span class="text-[11px] font-extrabold uppercase tracking-widest text-brand">Property owner</span>
+      <h1 class="m-0 mt-1 text-2xl font-bold tracking-tight text-slate-900">Rent payments</h1>
+      <p class="m-0 mt-1 text-sm text-slate-500">Confirm tenants' GCash payments, and record rent you receive in person or upfront.</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 px-4 py-2.5 text-right">
+      <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Outstanding</span>
+      <strong class="text-xl font-bold text-slate-900">{{ outstanding|peso }}</strong>
+    </div>
+  </div>
+
+  {% if not gcash_ready %}
+  <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+    {% icon "phone" 20 %}
+    <span class="flex-1"><strong>Add your GCash number</strong> so tenants can pay you through GCash. Until then they can only pay in person.</span>
+    <a href="{% url 'accounts:profile_edit' %}#gcash" class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-bold text-white no-underline hover:bg-amber-700">Set up GCash</a>
+  </div>
+  {% endif %}
+
+  {% if pending %}
+  <section class="grid gap-3">
+    <h2 class="m-0 flex items-center gap-2 text-base font-bold text-slate-900">GCash payments to confirm {% include "partials/ping_dot.html" with label="Payments awaiting confirmation" %}</h2>
+    <p class="m-0 -mt-1 text-xs text-slate-500">Check each reference number and amount in your GCash transaction history before you confirm it.</p>
+    {% for p in pending %}
+    <article class="grid gap-4 rounded-2xl border border-amber-200 bg-white p-5 shadow-sm lg:grid-cols-[1fr_auto] lg:items-center">
+      <div class="flex min-w-0 gap-4">
+        {% include "partials/avatar.html" with u=p.tenancy.tenant css="avatar" %}
+        <div class="min-w-0">
+          <p class="m-0 text-base font-bold text-slate-900">{{ p.amount|peso }} <span class="text-sm font-semibold text-slate-500">from {{ p.tenancy.tenant.get_full_name|default:p.tenancy.tenant.username }}</span></p>
+          <p class="m-0 mt-0.5 text-sm text-slate-700">Ref <strong class="font-mono">{{ p.reference_number }}</strong> · sent {{ p.paid_on|date:"M j, Y" }}</p>
+          <p class="m-0 mt-0.5 text-xs text-slate-400">{{ p.tenancy.unit.property.name }} · {{ p.tenancy.unit.name }} · submitted {{ p.created_at|date:"M j, g:i A" }}{% if p.proof %} · <a href="{{ p.proof.url }}" target="_blank" rel="noopener" class="font-semibold text-brand">View receipt</a>{% endif %}</p>
+          {% if p.note %}<p class="m-0 mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">“{{ p.note }}”</p>{% endif %}
+        </div>
+      </div>
+      <div class="flex flex-wrap items-start gap-2 lg:flex-col lg:items-stretch">
+        <form method="post" action="{% url 'payments:owner_review' p.pk 'confirm' %}" class="m-0"
+              onsubmit="return confirm('Confirm you received {{ p.amount|peso|escapejs }} with reference {{ p.reference_number|escapejs }}?');">
+          {% csrf_token %}
+          <button type="submit" class="w-full cursor-pointer rounded-lg border-0 bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700" data-loading="Confirming…">Confirm received</button>
+        </form>
+        <form method="post" action="{% url 'payments:owner_review' p.pk 'reject' %}" class="m-0 flex gap-2"
+              onsubmit="return confirm('Reject this payment? It will not count toward the balance.');">
+          {% csrf_token %}
+          <input name="reason" maxlength="255" placeholder="Reason (optional)" class="min-w-0 flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs">
+          <button type="submit" class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100" data-loading="Rejecting…">Reject</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <section class="rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="m-0 text-base font-bold text-slate-900">Tenants</h2>
+    {% if ledgers %}
+    <div class="mt-3 overflow-x-auto">
+      <table class="w-full border-collapse text-left text-sm">
+        <thead>
+          <tr class="border-b border-line text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <th class="py-2 pr-3 font-bold">Tenant</th><th class="py-2 pr-3 font-bold">Unit</th>
+            <th class="py-2 pr-3 text-right font-bold">Rent</th><th class="py-2 pr-3 font-bold">This month</th>
+            <th class="py-2 pr-3 text-right font-bold">Balance</th><th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in ledgers %}
+          <tr class="border-b border-line last:border-0 {% if not l.active %}text-slate-400{% endif %}">
+            <td class="py-3 pr-3"><strong class="{% if l.active %}text-slate-900{% endif %}">{{ l.tenancy.tenant.get_full_name|default:l.tenancy.tenant.username }}</strong>{% if not l.active %} <span class="text-[11px]">(ended)</span>{% endif %}</td>
+            <td class="py-3 pr-3">{{ l.tenancy.unit.property.name }} · {{ l.tenancy.unit.name }}</td>
+            <td class="py-3 pr-3 text-right">{{ l.tenancy.unit.monthly_rent|peso }}</td>
+            <td class="py-3 pr-3">
+              {% if l.current %}
+                {% if l.current.state == "paid" %}<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Paid</span>
+                {% elif l.current.state == "partial" %}<span class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">Partly paid</span>
+                {% else %}<span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-brand-dark">Due {{ l.current.charge.due_date|date:"M j" }}</span>{% endif %}
+              {% elif l.active %}<span class="text-xs">Starts {{ l.tenancy.tenancy_start|date:"M j" }}</span>{% else %}—{% endif %}
+            </td>
+            <td class="py-3 pr-3 text-right">
+              {% if l.balance %}<strong class="{% if l.overdue %}text-red-700{% else %}text-slate-900{% endif %}">{{ l.balance|peso }}</strong>{% if l.overdue %}<br><span class="text-[11px] font-bold text-red-600">{{ l.overdue|peso }} overdue</span>{% endif %}
+              {% elif l.credit %}<span class="text-xs font-bold text-emerald-700">{{ l.credit|peso }} credit</span>
+              {% else %}<span class="text-xs font-bold text-emerald-700">Paid up</span>{% endif %}
+              {% if l.pending_count %}<br><span class="text-[11px] font-bold text-amber-700">{{ l.pending_total|peso }} to confirm</span>{% endif %}
+            </td>
+            <td class="py-3 text-right"><a href="{% url 'payments:owner_tenancy' l.tenancy.pk %}" class="whitespace-nowrap rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white no-underline hover:bg-brand-dark">Record / view</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="grid place-items-center px-6 py-12 text-center text-slate-400">
+      {% icon "wallet" 36 %}
+      <h3 class="m-0 mt-3 text-base font-bold text-slate-700">No tenants yet</h3>
+      <p class="m-0 mt-1 text-sm">When you approve an application, that tenant's monthly rent shows up here.</p>
+      <a href="{% url 'properties:owner_applications' %}" class="mt-4 text-sm font-bold text-brand no-underline">Review applications →</a>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

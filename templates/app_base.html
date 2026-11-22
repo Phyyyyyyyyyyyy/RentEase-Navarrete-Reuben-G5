@@ -3,6 +3,7 @@
 {% block body %}
 {% role_menu user as menu %}
 {% pending_applications user as pending_count %}
+{% pending_payments user as payments_pending %}
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
@@ -17,7 +18,7 @@
       {% for url_name, label, icon_name in menu %}
         {% if url_name %}
           {% url url_name as item_url %}
-          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span>{% if pending_count and url_name == "properties:my_applications" or pending_count and url_name == "properties:owner_applications" %}{% include "partials/ping_dot.html" with css="ml-auto" label=pending_count|stringformat:"d"|add:" pending" %}{% endif %}</a>
+          <a href="{{ item_url }}" class="{% if request.path|startswith:item_url %}active{% endif %}">{% icon icon_name 19 %}<span>{{ label }}</span>{% if pending_count and url_name == "properties:my_applications" or pending_count and url_name == "properties:owner_applications" %}{% include "partials/ping_dot.html" with css="ml-auto" label=pending_count|stringformat:"d"|add:" pending" %}{% endif %}{% if payments_pending and url_name == "payments:owner" %}{% include "partials/ping_dot.html" with css="ml-auto" label=payments_pending|stringformat:"d"|add:" to confirm" %}{% endif %}</a>
         {% else %}
           <span class="nav-disabled" title="Coming in a later phase">{% icon icon_name 19 %}<span>{{ label }}</span><em>Soon</em></span>
         {% endif %}
@@ -36,6 +37,7 @@
     <header class="topbar">
       <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Open menu">{% icon "menu" %}</button>
       <div class="topbar-title"><span>RentEase</span><strong>{% block page_title %}Dashboard{% endblock %}</strong></div>
+      {% include "partials/theme_toggle.html" with css="topbar-theme-toggle" %}
       <a class="topbar-user" href="{% url 'accounts:profile' %}">
         {% include "partials/avatar.html" with u=user css="avatar avatar-small" %}
         <span>{{ user.get_full_name|default:user.username }}</span>
