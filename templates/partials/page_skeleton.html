@@ -1,5 +1,6 @@
 {# Placeholder shown by app_base.html while the next page is slow to load. #}
-<div id="page-skeleton" class="grid gap-6" hidden aria-hidden="true">
+{# `hidden` sits on a wrapper with no display class, so nothing can override it and show the skeleton early. #}
+<div id="page-skeleton" hidden aria-hidden="true"><div class="grid gap-6">
   <div class="grid animate-pulse gap-3">
     <div class="h-2.5 w-28 rounded bg-gray-200"></div>
     <div class="h-5 w-64 max-w-full rounded bg-gray-200"></div>
@@ -24,4 +25,4 @@
     </div>
     {% endfor %}
   </div>
-</div>
+</div></div>

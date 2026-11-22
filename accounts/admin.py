@@ -9,7 +9,7 @@ class RentEaseUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_active')
     list_filter = ('role', 'is_active', 'is_staff')
     fieldsets = UserAdmin.fieldsets + (
-        ('RentEase', {'fields': ('role', 'phone', 'profile_photo')}),
+        ('RentEase', {'fields': ('role', 'phone', 'profile_photo', 'gcash_name', 'gcash_number', 'gcash_qr')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('RentEase', {'fields': ('email', 'first_name', 'last_name', 'role', 'phone')}),

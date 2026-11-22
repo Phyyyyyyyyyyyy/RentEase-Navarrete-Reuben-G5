@@ -1,0 +1,3 @@
+{% if p.status == "pending" %}<span class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">Awaiting confirmation</span>
+{% elif p.status == "confirmed" %}<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Confirmed</span>
+{% else %}<span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">{% if p.owner_note == "Voided by owner" %}Voided{% else %}Rejected{% endif %}</span>{% endif %}

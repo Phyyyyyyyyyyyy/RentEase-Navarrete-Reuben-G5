@@ -22,6 +22,7 @@
       <div class="quick-actions">
         <a href="{% url 'properties:owner_properties' %}">{% icon "building" %}<div><strong>Manage my properties</strong><span>Add properties and units, update rent and availability.</span></div>{% icon "chevron" %}</a>
         <a href="{% url 'properties:owner_applications' %}">{% icon "file" %}<div><strong>Review applications</strong><span>{% if app_pending %}{{ app_pending }} application{{ app_pending|pluralize }} waiting for your decision.{% else %}Approve or reject tenant applications.{% endif %}</span></div>{% icon "chevron" %}</a>
+        <a href="{% url 'payments:owner' %}">{% icon "wallet" %}<div><strong>Rent payments</strong><span>{% if payments_to_confirm %}{{ payments_to_confirm }} GCash payment{{ payments_to_confirm|pluralize }} to confirm.{% else %}Confirm GCash payments and record rent paid in person.{% endif %}</span></div>{% icon "chevron" %}</a>
         <a href="{% url 'accounts:profile' %}">{% icon "user" %}<div><strong>Update profile</strong><span>Keep your contact information current for tenants.</span></div>{% icon "chevron" %}</a>
       </div>
     </div>

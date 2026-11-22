@@ -18,7 +18,7 @@
     {% for value, label, count in status_tabs %}
       <a href="?status={{ value }}" class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold no-underline transition
         {% if status == value %}border-brand bg-brand text-white{% else %}border-slate-200 bg-white text-slate-600 hover:border-blue-300{% endif %}">
-        {{ label }} <span class="{% if status == value %}text-blue-100{% else %}text-slate-400{% endif %}">{{ count }}</span>
+        {{ label }} <span class="{% if status == value %}text-white/75{% else %}text-slate-400{% endif %}">{{ count }}</span>
         {% if value == "pending" and count %}{% include "partials/ping_dot.html" with label="Applications awaiting review" %}{% endif %}
       </a>
     {% endfor %}

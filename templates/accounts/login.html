@@ -18,6 +18,7 @@
     </div>
   </section>
   <section class="auth-form-side">
+    {% include "partials/theme_toggle.html" with css="auth-theme-toggle" %}
     <form class="auth-card" method="post" novalidate>
       {% csrf_token %}
       <div class="auth-card-heading"><span class="eyebrow">Welcome back</span><h2>Sign in to RentEase</h2><p>Use your username or email address.</p></div>

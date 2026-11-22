@@ -14,6 +14,7 @@
     </div>
   </section>
   <section class="auth-form-side">
+    {% include "partials/theme_toggle.html" with css="auth-theme-toggle" %}
     <form class="auth-card wide-auth-card" method="post" novalidate>
       {% csrf_token %}
       <div class="auth-card-heading"><span class="eyebrow">Create account</span><h2>Register for RentEase</h2><p>All fields are required.</p></div>

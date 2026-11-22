@@ -1,0 +1,39 @@
+{% load rentease %}
+{# Month-by-month rent. Pass ledger; owner=True adds "Record" links that prefill the amount. #}
+<div class="overflow-x-auto">
+  <table class="w-full border-collapse text-left text-sm">
+    <thead>
+      <tr class="border-b border-line text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <th class="py-2 pr-3 font-bold">Month</th>
+        <th class="py-2 pr-3 font-bold">Due</th>
+        <th class="py-2 pr-3 text-right font-bold">Rent</th>
+        <th class="py-2 pr-3 text-right font-bold">Paid</th>
+        <th class="py-2 pr-3 font-bold">Status</th>
+        {% if owner %}<th class="py-2"></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in ledger.lines_newest_first %}
+      <tr class="border-b border-line last:border-0">
+        <td class="py-2.5 pr-3 font-semibold text-slate-800">{{ line.charge.period|date:"F Y" }}</td>
+        <td class="py-2.5 pr-3 text-slate-500">{{ line.charge.due_date|date:"M j" }}</td>
+        <td class="py-2.5 pr-3 text-right text-slate-700">{{ line.charge.amount|peso }}</td>
+        <td class="py-2.5 pr-3 text-right text-slate-700">{{ line.paid|peso }}</td>
+        <td class="py-2.5 pr-3">
+          {% if line.state == "paid" %}<span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">Paid</span>
+          {% elif line.state == "overdue" %}<span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">Overdue · {{ line.remaining|peso }} left</span>
+          {% elif line.state == "partial" %}<span class="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">Partly paid · {{ line.remaining|peso }} left</span>
+          {% else %}<span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-brand-dark">Due {{ line.charge.due_date|date:"M j" }}</span>{% endif %}
+        </td>
+        {% if owner %}
+        <td class="py-2.5 text-right">
+          {% if line.remaining %}<a href="?amount={{ line.through_total|stringformat:'.2f' }}#record" class="whitespace-nowrap text-xs font-bold text-brand no-underline hover:underline" title="Prefill the amount that settles everything up to {{ line.charge.period|date:'F' }}">Mark paid</a>{% endif %}
+        </td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="py-6 text-center text-sm text-slate-400">Rent starts {{ ledger.tenancy.tenancy_start|date:"F j, Y" }}. The first bill appears that month.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

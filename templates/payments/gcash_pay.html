@@ -1,0 +1,84 @@
+{% extends "app_base.html" %}
+{% load rentease %}
+{% block title %}Pay with GCash{% endblock %}
+{% block page_title %}Pay with GCash{% endblock %}
+{% block content %}
+{% with t=ledger.tenancy %}
+<div class="grid gap-6">
+  <a href="{% url 'payments:tenant' %}" class="w-fit text-sm font-semibold text-brand no-underline hover:underline">← Rent & payments</a>
+  <div>
+    <span class="text-[11px] font-extrabold uppercase tracking-widest text-brand">{{ t.unit.property.name }} · {{ t.unit.name }}</span>
+    <h1 class="m-0 mt-1 text-2xl font-bold tracking-tight text-slate-900">Pay rent with GCash</h1>
+    <p class="m-0 mt-1 text-sm text-slate-500">Send the money to your owner in the GCash app, then enter the reference number from your receipt. Your balance updates once the owner confirms it.</p>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+    {# Step 1: where to send #}
+    <section class="grid content-start gap-4 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+      <div class="flex items-center gap-3">
+        <span class="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">1</span>
+        <h2 class="m-0 text-base font-bold text-slate-900">Send to your owner's GCash</h2>
+      </div>
+      <dl class="m-0 grid gap-3 rounded-xl bg-slate-50 p-4 text-sm">
+        <div>
+          <dt class="text-[11px] font-bold uppercase tracking-wider text-slate-400">GCash number</dt>
+          <dd class="m-0 mt-0.5 flex items-center gap-2">
+            <strong class="font-mono text-xl tracking-wide text-slate-900" id="gcash-number">{{ owner.gcash_number }}</strong>
+            <button type="button" class="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100" data-copy="{{ owner.gcash_number }}">Copy</button>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Account name</dt>
+          <dd class="m-0 mt-0.5 font-semibold text-slate-800">{{ owner.gcash_name }}</dd>
+        </div>
+        <div>
+          <dt class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Amount due now</dt>
+          <dd class="m-0 mt-0.5 font-semibold text-slate-800">{{ ledger.balance|peso }}{% if ledger.overdue %} <span class="text-xs font-bold text-red-600">({{ ledger.overdue|peso }} overdue)</span>{% endif %}</dd>
+        </div>
+      </dl>
+      {% if owner.gcash_qr %}
+      <figure class="m-0 grid justify-items-center gap-2">
+        <img src="{{ owner.gcash_qr.url }}" alt="GCash QR code for {{ owner.gcash_name }}" class="w-full max-w-[240px] rounded-xl border border-line">
+        <figcaption class="text-xs text-slate-500">Or scan with GCash: Pay QR</figcaption>
+      </figure>
+      {% endif %}
+      <p class="m-0 text-xs leading-relaxed text-slate-500">Check that the name GCash shows before you send matches <strong>{{ owner.gcash_name }}</strong>. You can pay more than the balance to pay ahead. The extra is credited to the next months.</p>
+    </section>
+
+    {# Step 2: report it #}
+    <section class="grid content-start gap-4 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6">
+      <div class="flex items-center gap-3">
+        <span class="grid size-7 shrink-0 place-items-center rounded-full bg-brand text-xs font-bold text-white">2</span>
+        <h2 class="m-0 text-base font-bold text-slate-900">Enter your GCash receipt</h2>
+      </div>
+      <form method="post" enctype="multipart/form-data" class="form-stack" novalidate>
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}<div class="form-alert error">{{ error }}</div>{% endfor %}
+        <div class="form-grid two">
+          {% include "partials/field.html" with field=form.amount %}
+          {% include "partials/field.html" with field=form.paid_on %}
+        </div>
+        {% include "partials/field.html" with field=form.reference_number %}
+        {% include "partials/field.html" with field=form.proof %}
+        {% include "partials/field.html" with field=form.note %}
+        <div class="form-actions">
+          <a class="secondary-button" href="{% url 'payments:tenant' %}">Cancel</a>
+          <button class="primary-button" type="submit" data-loading="Submitting…">Submit payment</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>
+{% endwith %}
+<script>
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(btn.dataset.copy).then(function () {
+        var label = btn.textContent; btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = label; }, 1500);
+      });
+    });
+  });
+</script>
+{% endblock %}

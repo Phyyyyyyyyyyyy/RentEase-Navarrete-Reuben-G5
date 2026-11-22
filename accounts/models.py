@@ -1,5 +1,11 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
+
+# Philippine mobile number as GCash uses it: 09XXXXXXXXX (11 digits).
+gcash_number_validator = RegexValidator(
+    r'^09\d{9}$', 'Enter an 11-digit mobile number starting with 09, e.g. 09171234567.',
+)
 
 
 class User(AbstractUser):
@@ -24,6 +30,12 @@ class User(AbstractUser):
     phone = models.CharField('contact number', max_length=20, blank=True)
     profile_photo = models.ImageField(upload_to='profile_photos/', blank=True)
 
+    # Property owners only: where tenants send rent through GCash.
+    gcash_name = models.CharField('GCash account name', max_length=100, blank=True)
+    gcash_number = models.CharField('GCash number', max_length=11, blank=True, validators=[gcash_number_validator])
+    gcash_qr = models.ImageField('GCash QR code', upload_to='gcash_qr/', blank=True,
+                                 help_text='Your QR code from GCash (Receive, then QR). Tenants can scan it to pay you.')
+
     def save(self, *args, **kwargs):
         # Keep the Admin role and Django's admin flags in sync:
         # `createsuperuser` accounts get the Admin dashboard, and Admin-role
@@ -39,6 +51,10 @@ class User(AbstractUser):
     def initials(self):
         name = self.get_full_name() or self.username
         return ''.join(part[0] for part in name.split()[:2]).upper()
+
+    @property
+    def accepts_gcash(self):
+        return bool(self.gcash_number)
 
     @property
     def dashboard_url_name(self):

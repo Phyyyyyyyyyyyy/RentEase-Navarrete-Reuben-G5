@@ -27,6 +27,17 @@
         {% include "partials/field.html" with field=form.email %}
         {% include "partials/field.html" with field=form.phone %}
         {% include "partials/field.html" with field=form.profile_photo %}
+        {% if form.gcash_number %}
+        <fieldset id="gcash" class="m-0 grid gap-4 rounded-xl border border-line p-4">
+          <legend class="px-1 text-sm font-bold text-slate-800">GCash for rent payments</legend>
+          <p class="m-0 -mt-2 text-xs text-slate-500">Tenants send rent to this number in the GCash app and submit the reference number. You confirm each payment before it counts.</p>
+          <div class="form-grid two">
+            {% include "partials/field.html" with field=form.gcash_number %}
+            {% include "partials/field.html" with field=form.gcash_name %}
+          </div>
+          {% include "partials/field.html" with field=form.gcash_qr show_help=True %}
+        </fieldset>
+        {% endif %}
         <div class="form-actions">
           <a class="secondary-button" href="{% url 'accounts:profile' %}">Cancel</a>
           <button class="primary-button" type="submit" data-loading="Saving…">Save changes</button>
