@@ -208,6 +208,24 @@ As a result, nobody can read data such as `accounts_user` through the Data API, 
 
 ---
 
+## Uploaded Files (Supabase Storage)
+
+Profile photos, GCash QR codes, and payment receipts are stored in a **private Supabase Storage bucket**, so they show on every computer. Pages display them through signed links that expire after one hour. Before this, uploads were saved only in the local `media/` folder, which isn't in Git (PD2 issue ISS-01).
+
+Setup, once per Supabase project:
+
+1. In Supabase, open **Storage** and create a bucket named `media`. Leave **Public bucket** off. Optionally limit files to 5 MB and the type `image/*`.
+2. Open **Storage → S3**. Copy the endpoint and region, and click **New access key**.
+3. Add the five `SUPABASE_S3_*` lines to `.env`. They're listed in `.env.example`.
+4. If you already had uploads in `media/`, copy them to the bucket:
+   ```powershell
+   .\venv\Scripts\python manage.py upload_local_media
+   ```
+
+Without the `SUPABASE_S3_*` lines, uploads are saved to the local `media/` folder as before. Setting only some of them stops the app with an error naming the missing ones. The settings are in `config/storage_config.py`. Tests never upload to the bucket; they keep files in memory.
+
+---
+
 ## Error Pages and `DEBUG`
 
 `DEBUG` is read from `.env` and defaults to `False` when it's missing. With `DEBUG=False`, users never see Django's debug or traceback pages. They get RentEase's own pages instead: `templates/404.html`, `500.html`, `403.html`, `403_csrf.html` (expired form), and `400.html`.
