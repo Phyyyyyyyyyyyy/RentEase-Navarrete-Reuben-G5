@@ -208,6 +208,14 @@ As a result, nobody can read data such as `accounts_user` through the Data API, 
 
 ---
 
+## Error Pages and `DEBUG`
+
+`DEBUG` is read from `.env` and defaults to `False` when it's missing. With `DEBUG=False`, users never see Django's debug or traceback pages. They get RentEase's own pages instead: `templates/404.html`, `500.html`, `403.html`, `403_csrf.html` (expired form), and `400.html`.
+
+To try them locally, set `DEBUG=False` in `.env` and run the server as usual. CSS and images still load because [WhiteNoise](https://whitenoise.readthedocs.io/) serves the static files. Then open a page that doesn't exist, such as http://127.0.0.1:8000/nope/.
+
+---
+
 ## Styling (Tailwind CSS)
 
 The site uses one stylesheet, `static/css/main.css`. It's **generated** from `static_src/` by the Tailwind CLI and committed, so the app runs without Node. To change styles:

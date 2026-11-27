@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+  Shared layout for the custom error pages (400, 403, 404, 500).
+  It uses no user or request data, so it also renders for 500 errors,
+  where Django provides no template context.
+{% endcomment %}
+{% block body %}
+<main class="auth-form-side" style="min-height: 100vh;">
+  <section class="auth-card" style="text-align: center;" role="alert">
+    <img src="{% static 'img/brand/favicon.svg' %}" alt="RentEase" width="48" height="48" style="margin: 0 auto;">
+    <span class="eyebrow">Error {% block code %}{% endblock %}</span>
+    <h1 style="margin: 0; font-size: 26px;">{% block heading %}{% endblock %}</h1>
+    <p style="margin: 0; color: #5b6578;">{% block message %}{% endblock %}</p>
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      <a class="primary-button" href="{% url 'accounts:home' %}">Go to my dashboard</a>
+      <a class="secondary-button" href="javascript:history.back()">Go back</a>
+    </div>
+  </section>
+</main>
+{% endblock %}

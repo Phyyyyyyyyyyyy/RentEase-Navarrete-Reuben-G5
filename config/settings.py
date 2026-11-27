@@ -6,6 +6,7 @@ Secrets and database credentials are read from a local `.env` file
 """
 
 import os
+import warnings
 from pathlib import Path
 
 import dj_database_url
@@ -44,6 +45,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves CSS/images when DEBUG=False, so the custom error pages and the app stay styled.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,6 +110,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Let WhiteNoise serve straight from static/ too, so `collectstatic` isn't needed to run locally.
+WHITENOISE_USE_FINDERS = True
+# ...and don't warn that the (unused) collectstatic folder is missing.
+warnings.filterwarnings('ignore', message='No directory at', category=UserWarning)
 
 # Uploaded profile photos
 MEDIA_URL = 'media/'
