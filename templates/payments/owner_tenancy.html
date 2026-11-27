@@ -75,7 +75,7 @@
             <span class="text-xs text-slate-500">{{ p.get_method_display }}{% if p.reference_number %} · Ref {{ p.reference_number }}{% endif %}</span>
             {% include "payments/_payment_status.html" %}
           </div>
-          <p class="m-0 mt-0.5 text-xs text-slate-400">{{ p.paid_on|date:"M j, Y" }} · {% if p.recorded_by_owner %}recorded by you{% else %}submitted by tenant{% endif %}{% if p.note %} · “{{ p.note }}”{% endif %}{% if p.proof %} · <a href="{{ p.proof.url }}" target="_blank" rel="noopener" class="font-semibold text-brand">View receipt</a>{% endif %}</p>
+          <p class="m-0 mt-0.5 text-xs text-slate-400">{{ p.paid_on|date:"M j, Y" }} · {% if p.recorded_by_owner %}recorded by you{% else %}submitted by tenant{% endif %}{% if p.note %} · “{{ p.note }}”{% endif %}{% if p.proof %} · <a href="{% url 'payments:proof' p.pk %}" target="_blank" rel="noopener" class="font-semibold text-brand">View receipt</a>{% endif %}</p>
           {% if p.status == "rejected" and p.owner_note %}<p class="m-0 mt-1 text-xs text-slate-500">{{ p.owner_note }}</p>{% endif %}
         </div>
         {% if p.status == "pending" %}

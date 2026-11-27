@@ -35,7 +35,7 @@
         <div class="min-w-0">
           <p class="m-0 text-base font-bold text-slate-900">{{ p.amount|peso }} <span class="text-sm font-semibold text-slate-500">from {{ p.tenancy.tenant.get_full_name|default:p.tenancy.tenant.username }}</span></p>
           <p class="m-0 mt-0.5 text-sm text-slate-700">Ref <strong class="font-mono">{{ p.reference_number }}</strong> · sent {{ p.paid_on|date:"M j, Y" }}</p>
-          <p class="m-0 mt-0.5 text-xs text-slate-400">{{ p.tenancy.unit.property.name }} · {{ p.tenancy.unit.name }} · submitted {{ p.created_at|date:"M j, g:i A" }}{% if p.proof %} · <a href="{{ p.proof.url }}" target="_blank" rel="noopener" class="font-semibold text-brand">View receipt</a>{% endif %}</p>
+          <p class="m-0 mt-0.5 text-xs text-slate-400">{{ p.tenancy.unit.property.name }} · {{ p.tenancy.unit.name }} · submitted {{ p.created_at|date:"M j, g:i A" }}{% if p.proof %} · <a href="{% url 'payments:proof' p.pk %}" target="_blank" rel="noopener" class="font-semibold text-brand">View receipt</a>{% endif %}</p>
           {% if p.note %}<p class="m-0 mt-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">“{{ p.note }}”</p>{% endif %}
         </div>
       </div>
