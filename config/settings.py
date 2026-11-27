@@ -6,12 +6,15 @@ Secrets and database credentials are read from a local `.env` file
 """
 
 import os
+import sys
 import warnings
 from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+
+from . import storage_config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
@@ -118,8 +121,18 @@ WHITENOISE_USE_FINDERS = True
 # ...and don't warn that the (unused) collectstatic folder is missing.
 warnings.filterwarnings('ignore', message='No directory at', category=UserWarning)
 
-# Uploaded profile photos
+# Uploaded files: profile photos, GCash QR codes, and payment receipts.
+# With SUPABASE_S3_* in .env they go to a private Supabase Storage bucket (ISS-01);
+# otherwise to the local media/ folder. See config/storage_config.py.
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Tests never touch the real bucket: uploads are kept in memory instead.
+TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+STORAGES = {
+    'default': ({'BACKEND': 'django.core.files.storage.InMemoryStorage'} if TESTING
+                else storage_config.default_storage(env)),
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
