@@ -1,6 +1,8 @@
 import builtins
+from decimal import Decimal
 
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -56,13 +58,15 @@ class Unit(models.Model):
     bedrooms = models.PositiveSmallIntegerField(default=0)
     bathrooms = models.PositiveSmallIntegerField(default=1)
     floor_area = models.PositiveIntegerField('floor area (sqm)', default=0)
-    monthly_rent = models.DecimalField(max_digits=10, decimal_places=2)
+    monthly_rent = models.DecimalField(max_digits=10, decimal_places=2,
+                                       validators=[MinValueValidator(Decimal('0.01'))])
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.VACANT)
 
     class Meta:
         ordering = ['property', 'name']
         constraints = [
             models.UniqueConstraint(fields=['property', 'name'], name='unique_unit_name_per_property'),
+            models.CheckConstraint(condition=Q(monthly_rent__gt=0), name='unit_rent_positive'),
         ]
 
     def __str__(self):

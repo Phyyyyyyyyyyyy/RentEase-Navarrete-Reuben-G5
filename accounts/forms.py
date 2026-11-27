@@ -3,6 +3,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
 from .models import User, gcash_number_validator
 
+MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
 
 class RegistrationForm(UserCreationForm):
     first_name = forms.CharField(max_length=150, required=True)
@@ -73,6 +75,19 @@ class ProfileForm(forms.ModelForm):
             number = self.fields['gcash_number']
             number.validators = []
             number.max_length = number.widget.attrs['maxlength'] = 15
+
+    def _check_image_size(self, name, label):
+        image = self.cleaned_data.get(name)
+        # Only a newly uploaded file has content_type; an existing photo is left alone.
+        if image and hasattr(image, 'content_type') and image.size > MAX_IMAGE_BYTES:
+            raise forms.ValidationError(f'The {label} must be 5 MB or smaller.')
+        return image
+
+    def clean_profile_photo(self):
+        return self._check_image_size('profile_photo', 'profile photo')
+
+    def clean_gcash_qr(self):
+        return self._check_image_size('gcash_qr', 'QR code image')
 
     def clean_gcash_number(self):
         number = self.cleaned_data['gcash_number'].replace(' ', '').replace('-', '')
