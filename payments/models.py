@@ -35,6 +35,7 @@ class RentCharge(models.Model):
         ordering = ['period']
         constraints = [
             models.UniqueConstraint(fields=['tenancy', 'period'], name='one_rent_charge_per_tenancy_month'),
+            models.CheckConstraint(condition=Q(amount__gt=0), name='rent_charge_amount_positive'),
         ]
 
     def __str__(self):
@@ -53,7 +54,9 @@ class Payment(models.Model):
         CONFIRMED = 'confirmed', 'Confirmed'
         REJECTED = 'rejected', 'Rejected'
 
-    tenancy = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='payments')
+    # PROTECT: money records are never deleted as a side effect of deleting a unit,
+    # property, or user. Owners can't delete a unit that has payment history.
+    tenancy = models.ForeignKey(Application, on_delete=models.PROTECT, related_name='payments')
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     method = models.CharField(max_length=10, choices=Method.choices)
     reference_number = models.CharField(max_length=20, blank=True)

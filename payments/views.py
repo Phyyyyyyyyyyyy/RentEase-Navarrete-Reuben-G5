@@ -97,6 +97,8 @@ def owner_tenancy(request, pk):
     ledger = _ledger(tenancy)
     try:  # "Record ₱X" links on the month list prefill the amount
         amount = Decimal(request.GET['amount']).quantize(Decimal('0.01'))
+        if not amount.is_finite() or amount <= 0:  # ignore NaN, Infinity, zero, and negatives
+            raise InvalidOperation
     except (KeyError, InvalidOperation):
         amount = ledger.suggested_amount
     form = RecordPaymentForm(request.POST or None, initial={
