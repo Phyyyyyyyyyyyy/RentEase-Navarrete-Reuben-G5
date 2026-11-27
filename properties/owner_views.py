@@ -5,7 +5,7 @@ change another owner's properties, units, or applications (they get a 404).
 """
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -22,6 +22,22 @@ OWNER = User.Role.OWNER
 
 def owned_properties(user):
     return Property.objects.filter(owner=user)
+
+
+def delete_blocker(units):
+    """Why `units` can't be deleted (a reason phrase), or None if they can.
+
+    A unit with a current tenant, or with any rent payment history, is kept so
+    tenancies and money records are never lost by accident.
+    """
+    from payments.models import Payment
+
+    if Application.objects.filter(unit__in=units, unit__status=Unit.Status.OCCUPIED,
+                                  status=Application.Status.APPROVED).exists():
+        return 'has a current tenant. Mark the unit vacant after they move out, then delete it'
+    if Payment.objects.filter(tenancy__unit__in=units).exists():
+        return 'has rent payment records, which must be kept'
+    return None
 
 
 # ---------------------------------------------------------------- properties
@@ -82,7 +98,15 @@ def property_edit(request, pk):
 def property_delete(request, pk):
     prop = get_object_or_404(owned_properties(request.user), pk=pk)
     name = prop.name
-    prop.delete()  # cascades to its units and their applications
+    reason = delete_blocker(prop.units.all())
+    if reason:
+        messages.error(request, f"{name} can't be deleted: one of its units {reason}.")
+        return redirect('properties:owner_property', pk=prop.pk)
+    try:
+        prop.delete()  # cascades to its units and their applications
+    except ProtectedError:  # a payment was recorded between the check and the delete
+        messages.error(request, f"{name} can't be deleted: one of its units has rent payment records.")
+        return redirect('properties:owner_property', pk=prop.pk)
     messages.success(request, f'{name} deleted.')
     return redirect('properties:owner_properties')
 
@@ -122,7 +146,15 @@ def unit_edit(request, pk):
 def unit_delete(request, pk):
     unit = get_object_or_404(Unit, pk=pk, property__owner=request.user)
     property_id, name = unit.property_id, unit.name
-    unit.delete()
+    reason = delete_blocker([unit])
+    if reason:
+        messages.error(request, f"{name} can't be deleted: it {reason}.")
+        return redirect('properties:owner_property', pk=property_id)
+    try:
+        unit.delete()
+    except ProtectedError:
+        messages.error(request, f"{name} can't be deleted: it has rent payment records.")
+        return redirect('properties:owner_property', pk=property_id)
     messages.success(request, f'{name} deleted.')
     return redirect('properties:owner_property', pk=property_id)
 
