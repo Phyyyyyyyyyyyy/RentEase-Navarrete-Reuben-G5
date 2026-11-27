@@ -4,14 +4,17 @@ Tenant queries are filtered by `tenant=request.user` and owner queries by
 `unit__property__owner=request.user`, so nobody can see or change another
 person's payments (they get a 404).
 """
+import mimetypes
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.db import IntegrityError, transaction
+from django.db.models import Q
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from accounts.decorators import role_required
 from accounts.models import User
@@ -126,6 +129,32 @@ def owner_tenancy(request, pk):
         'ledger': ledger, 'form': form,
         'history': tenancy.payments.select_related('recorded_by'),
     })
+
+
+@role_required(TENANT, OWNER)
+@require_GET
+def payment_proof(request, pk):
+    """Show a payment's receipt screenshot to its tenant and the unit's owner only.
+
+    Receipts can show names, numbers, and balances, so they are never served
+    from a public file URL. Anyone else gets a 404, as for any other record.
+    """
+    payment = get_object_or_404(
+        Payment.objects.filter(Q(tenancy__tenant=request.user) | Q(tenancy__unit__property__owner=request.user)),
+        pk=pk,
+    )
+    if not payment.proof:
+        raise Http404('This payment has no receipt.')
+    try:
+        image = payment.proof.open('rb')
+    except FileNotFoundError:
+        raise Http404('The receipt file is missing.')
+    content_type = mimetypes.guess_type(payment.proof.name)[0] or 'application/octet-stream'
+    if not content_type.startswith('image/'):
+        content_type = 'application/octet-stream'  # never let the browser run an uploaded file as a page
+    response = FileResponse(image, content_type=content_type)
+    response['Cache-Control'] = 'private, no-store'
+    return response
 
 
 @role_required(OWNER)
