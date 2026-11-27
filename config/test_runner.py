@@ -7,7 +7,8 @@ accessed by other users", both when a run finishes and when the next run
 tries to replace the old test database.
 
 PostgreSQL 13+ has `DROP DATABASE ... WITH (FORCE)`, which ends those sessions
-and drops the database in one step. This runner makes Django use it, so
+and drops the database in one step. This runner makes Django use it, at the
+end of a run and for any test database a stopped run left behind, so
 `python manage.py test` works on every run without `--keepdb`.
 """
 from django.db import connections
@@ -29,6 +30,14 @@ class SupabaseTestRunner(DiscoverRunner):
     def setup_databases(self, **kwargs):
         for alias in connections:
             connection = connections[alias]
-            if connection.vendor == 'postgresql':
-                force_drop(connection.creation)
+            if connection.vendor != 'postgresql':
+                continue
+            creation = connection.creation
+            force_drop(creation)
+            # A run that crashed or was stopped leaves the old test database behind,
+            # sometimes with pooled sessions still holding locks in it. Django would
+            # replace it with a plain DROP DATABASE (which those sessions block), so
+            # force-drop it first. With --keepdb the existing database is reused instead.
+            if not self.keepdb:
+                creation._destroy_test_db(creation._get_test_db_name(), self.verbosity)
         return super().setup_databases(**kwargs)
