@@ -82,6 +82,9 @@ DATABASES = {
     )
 }
 
+# Drops the test database WITH (FORCE) so Supabase's pooler can't block it (ISS-02).
+TEST_RUNNER = 'config.test_runner.SupabaseTestRunner'
+
 
 # Authentication
 AUTH_USER_MODEL = 'accounts.User'

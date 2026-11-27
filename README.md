@@ -240,7 +240,7 @@ npm run tw:watch     # leave running in a second terminal next to runserver
 
 The 87 tests cover registration validation (required fields, email format, duplicates, password mismatch, role restriction), password hashing, login with username or email, invalid credentials, logout, login-required redirects, role isolation between dashboards, and profile ownership, plus browsing filters, applying (occupied units, duplicates, past dates), application ownership, editing, and withdrawal, owner property/unit management and application approval, and rent payments (month-end due dates, oldest-month-first allocation, partial and upfront payments, GCash reference validation, owner confirm/reject/void, in-person recording, and payment ownership).
 
-> **Note:** Django creates a temporary `test_postgres` database on Supabase. If a second run fails with *"database test_postgres is being accessed by other users"*, a pooled connection from the previous run is still open. Run `.\venv\Scripts\python manage.py test --keepdb` to reuse the test database instead.
+> **Note:** Django creates a temporary `test_postgres` database on Supabase and drops it afterwards. Supabase's connection pooler keeps a connection to it open, which used to make the next run fail with *"database test_postgres is being accessed by other users"*. The project's test runner (`config/test_runner.py`) drops it with `DROP DATABASE ... WITH (FORCE)`, so `python manage.py test` works on every run. `--keepdb` is no longer needed.
 
 ---
 
